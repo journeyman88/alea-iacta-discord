@@ -45,7 +45,8 @@
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
+        <!--
+	<dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>alea-iacta-sys-7thsea2</artifactId>
             <version>${project.version}</version>
@@ -81,5 +82,6 @@
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
+	-->
     </dependencies>
 </project>
