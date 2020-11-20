@@ -37,7 +37,7 @@ import org.javacord.api.listener.message.MessageCreateListener;
 public class AleaListener implements MessageCreateListener
 {
     public static final String PREFIX = "!alea";
-    private static final Pattern PATTERN = Pattern.compile("^(" + PREFIX + ")(( )(?<parameters>.*))?$");
+    private static final Pattern PATTERN = Pattern.compile("^(" + PREFIX + ")(( +)(?<parameters>.*))?$");
     private static final List<Command> AVAILABLE_COMMANDS = new ArrayList<>();
     
     static {
