@@ -17,6 +17,7 @@ package net.unknowndomain.alea;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.unknowndomain.alea.command.Command;
@@ -65,11 +66,11 @@ public class AleaListener implements MessageCreateListener
 //                {
 //                    builder.append(author.asUser().get()).appendNewLine();
 //                }
-                Command cmd = parseCommand(params);
-            
-                if (cmd != null)
+                Optional<Command> parsedCmd = parseCommand(params);
+                
+                if (parsedCmd.isPresent())
                 {
-                    ReturnMsg msg = cmd.execCommand(params);
+                    ReturnMsg msg = parsedCmd.get().execCommand(params);
                     MsgFormatter.appendMessage(builder, msg);
                     builder.send(event.getChannel());
                 }
@@ -83,24 +84,24 @@ public class AleaListener implements MessageCreateListener
         }
     }
     
-    private Command parseCommand(String parameters)
+    private Optional<Command> parseCommand(String parameters)
     {
         for (Command cmd : AVAILABLE_COMMANDS)
         {
             if (cmd.checkCommand(parameters))
             {
-                return cmd;
+                return Optional.of(cmd);
             }
         }
         for (Command cmd : RpgSystemCommand.LOADER)
         {
             if (cmd.checkCommand(parameters))
             {
-                return cmd;
+                return Optional.of(cmd);
             }
         }
         
-        return null;
+        return Optional.empty();
     }
     
     private void printHelp(TextChannel channel)
