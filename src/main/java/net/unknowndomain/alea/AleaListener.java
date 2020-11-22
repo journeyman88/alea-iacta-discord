@@ -21,6 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.unknowndomain.alea.command.Command;
 import net.unknowndomain.alea.expr.ExpressionCommand;
+import net.unknowndomain.alea.messages.ReturnMsg;
 import net.unknowndomain.alea.systems.ListSystemsCommand;
 import net.unknowndomain.alea.systems.RpgSystemCommand;
 import org.apache.commons.lang3.StringUtils;
@@ -49,6 +50,7 @@ public class AleaListener implements MessageCreateListener
     public void onMessageCreate(MessageCreateEvent event)
     {
         Matcher checkPrefix = PATTERN.matcher(event.getMessageContent());
+        event.getMessageAttachments();
         if (checkPrefix.matches()) {
             String params = checkPrefix.group("parameters"); 
             if (params == null || params.isEmpty() || params.startsWith("help"))
@@ -61,7 +63,8 @@ public class AleaListener implements MessageCreateListener
             
                 if (cmd != null)
                 {
-                    cmd.execCommand(params).send(event.getChannel());
+                    ReturnMsg msg = cmd.execCommand(params);
+                    MsgFormatter.formatMessage(msg).send(event.getChannel());
                 }
                 else
                 {
