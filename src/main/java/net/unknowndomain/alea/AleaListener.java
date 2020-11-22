@@ -26,6 +26,7 @@ import net.unknowndomain.alea.systems.ListSystemsCommand;
 import net.unknowndomain.alea.systems.RpgSystemCommand;
 import org.apache.commons.lang3.StringUtils;
 import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.message.MessageAuthor;
 import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.MessageDecoration;
 import org.javacord.api.event.message.MessageCreateEvent;
@@ -50,7 +51,6 @@ public class AleaListener implements MessageCreateListener
     public void onMessageCreate(MessageCreateEvent event)
     {
         Matcher checkPrefix = PATTERN.matcher(event.getMessageContent());
-        event.getMessageAttachments();
         if (checkPrefix.matches()) {
             String params = checkPrefix.group("parameters"); 
             if (params == null || params.isEmpty() || params.startsWith("help"))
@@ -59,16 +59,24 @@ public class AleaListener implements MessageCreateListener
             }
             else
             {
+                MessageBuilder builder = new MessageBuilder();
+//                MessageAuthor author = event.getMessageAuthor();
+//                if (author.isUser() && !event.isPrivateMessage() && author.asUser().isPresent())
+//                {
+//                    builder.append(author.asUser().get()).appendNewLine();
+//                }
                 Command cmd = parseCommand(params);
             
                 if (cmd != null)
                 {
                     ReturnMsg msg = cmd.execCommand(params);
-                    MsgFormatter.formatMessage(msg).send(event.getChannel());
+                    MsgFormatter.appendMessage(builder, msg);
+                    builder.send(event.getChannel());
                 }
                 else
                 {
-                    event.getChannel().sendMessage("Error: command not available");
+                    builder.append("Error: command not available");
+                    builder.send(event.getChannel());
                     printHelp(event.getChannel());
                 }
             }
