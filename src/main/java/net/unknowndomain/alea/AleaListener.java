@@ -30,6 +30,7 @@ import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.MessageAuthor;
 import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.MessageDecoration;
+import org.javacord.api.entity.user.User;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.listener.message.MessageCreateListener;
 
@@ -61,6 +62,7 @@ public class AleaListener implements MessageCreateListener
             else
             {
                 MessageBuilder builder = new MessageBuilder();
+                Optional<Long> callerId = readUserId(event.getMessageAuthor());
 //                MessageAuthor author = event.getMessageAuthor();
 //                if (author.isUser() && !event.isPrivateMessage() && author.asUser().isPresent())
 //                {
@@ -70,7 +72,7 @@ public class AleaListener implements MessageCreateListener
                 
                 if (parsedCmd.isPresent())
                 {
-                    ReturnMsg msg = parsedCmd.get().execCommand(params);
+                    ReturnMsg msg = parsedCmd.get().execCommand(params, callerId);
                     MsgFormatter.appendMessage(builder, msg);
                     builder.send(event.getChannel());
                 }
@@ -102,6 +104,17 @@ public class AleaListener implements MessageCreateListener
         }
         
         return Optional.empty();
+    }
+    
+    private Optional<Long> readUserId(MessageAuthor author)
+    {
+        Optional<Long> retVal = Optional.empty();
+        if (author.isUser() && author.asUser().isPresent())
+        {
+            User discordUser = author.asUser().get();
+            Optional.of(discordUser.getId());
+        }
+        return retVal;
     }
     
     private void printHelp(TextChannel channel)
