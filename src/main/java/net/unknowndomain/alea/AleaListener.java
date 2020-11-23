@@ -112,7 +112,7 @@ public class AleaListener implements MessageCreateListener
         if (author.isUser() && author.asUser().isPresent())
         {
             User discordUser = author.asUser().get();
-            Optional.of(discordUser.getId());
+            retVal = Optional.of(discordUser.getId());
         }
         return retVal;
     }
