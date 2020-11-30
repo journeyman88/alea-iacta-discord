@@ -16,6 +16,7 @@
 package net.unknowndomain.alea;
 
 import java.util.logging.Level;
+import net.unknowndomain.alea.systems.RpgSystemCommand;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -48,6 +49,12 @@ public class App
                         .argName("token")
                         .build()
         );
+        CMD_OPTIONS.addOption(
+                Option.builder("l")
+                        .longOpt("systemListener")
+                        .desc("Enable system specific listeners")
+                        .build()
+        );
     }
     
     public static void main(String ... args)
@@ -58,6 +65,13 @@ public class App
             DiscordApiBuilder apiBuilder = new DiscordApiBuilder();
             apiBuilder.setToken(cmd.getOptionValue("discordToken"));
             apiBuilder.addListener(new AleaListener());
+            if (cmd.hasOption("systemListener"))
+            {
+                for (RpgSystemCommand system : RpgSystemCommand.LOADER)
+                {
+                    apiBuilder.addListener(new SystemListener(system));
+                }
+            }
             apiBuilder.setRecommendedTotalShards().join();
             apiBuilder.loginAllShards().forEach(
                     shardFuture -> shardFuture

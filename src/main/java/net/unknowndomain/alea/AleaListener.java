@@ -62,12 +62,12 @@ public class AleaListener implements MessageCreateListener
             else
             {
                 MessageBuilder builder = new MessageBuilder();
-                Optional<Long> callerId = readUserId(event.getMessageAuthor());
-//                MessageAuthor author = event.getMessageAuthor();
-//                if (author.isUser() && !event.isPrivateMessage() && author.asUser().isPresent())
-//                {
-//                    builder.append(author.asUser().get()).appendNewLine();
-//                }
+                MessageAuthor author = event.getMessageAuthor();
+                Optional<Long> callerId = readUserId(author);
+                if (author.isUser() && !event.isPrivateMessage() && author.asUser().isPresent())
+                {
+                    builder.append(author.asUser().get()).appendNewLine();
+                }
                 Optional<Command> parsedCmd = parseCommand(params);
                 
                 if (parsedCmd.isPresent())
