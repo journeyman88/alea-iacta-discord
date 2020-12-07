@@ -15,17 +15,12 @@
  */
 package net.unknowndomain.alea;
 
-import java.util.logging.Level;
-import net.unknowndomain.alea.systems.RpgSystemCommand;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.javacord.api.DiscordApi;
-import org.javacord.api.DiscordApiBuilder;
-import org.javacord.api.util.logging.ExceptionLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +28,10 @@ import org.slf4j.LoggerFactory;
  *
  * @author journeyman
  */
-public class App
+public class AleaConfigParser
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
+    
+    private static final Logger LOGGER = LoggerFactory.getLogger(AleaConfigParser.class);
     private static final Options CMD_OPTIONS = new Options();
     private static final CommandLineParser PARSER = new DefaultParser();
     
@@ -57,35 +53,11 @@ public class App
         );
     }
     
-    public static void main(String ... args)
+    public static AleaConfig parseConfig(String ... args) throws ParseException
     {
-        try
-        {
-            CommandLine cmd = PARSER.parse(CMD_OPTIONS, args);
-            DiscordApiBuilder apiBuilder = new DiscordApiBuilder();
-            apiBuilder.setToken(cmd.getOptionValue("discordToken"));
-            apiBuilder.addListener(new AleaListener());
-            if (cmd.hasOption("systemListener"))
-            {
-                for (RpgSystemCommand system : RpgSystemCommand.LOADER)
-                {
-                    apiBuilder.addListener(new SystemListener(system));
-                }
-            }
-            apiBuilder.setRecommendedTotalShards().join();
-            apiBuilder.loginAllShards().forEach(
-                    shardFuture -> shardFuture
-                            .thenAccept(App::onShardLogin)
-                            .exceptionally(ExceptionLogger.get())
-            );
-        } catch (ParseException ex)
-        {
-            LOGGER.error(null, ex);
-        }
+        CommandLine cmd = PARSER.parse(CMD_OPTIONS, args);
+        AleaConfig retVal = new AleaConfig(cmd.getOptionValue("discordToken"), cmd.hasOption("systemListener"));
+        return retVal;
     }
     
-    private static void onShardLogin(DiscordApi api) 
-    {
-        LOGGER.info(api.createBotInvite());
-    }
 }

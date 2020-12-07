@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.unknowndomain.alea;
+package net.unknowndomain.alea.bot;
 
+import net.unknowndomain.alea.bot.MsgFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
