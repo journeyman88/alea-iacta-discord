@@ -15,7 +15,6 @@
  */
 package net.unknowndomain.alea.bot;
 
-import net.unknowndomain.alea.bot.MsgFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;

@@ -15,7 +15,6 @@
  */
 package net.unknowndomain.alea.bot;
 
-import net.unknowndomain.alea.bot.MsgFormatter;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
