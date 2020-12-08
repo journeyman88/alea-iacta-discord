@@ -78,7 +78,7 @@ public class MsgFormatter
         {
             decor.add(MessageDecoration.UNDERLINE);
         }
-        if (part.getMsgStyle().contains(MsgStyle.STRIKEOUT))
+        if (part.getMsgStyle().contains(MsgStyle.STRIKETHRU))
         {
             decor.add(MessageDecoration.STRIKEOUT);
         }
