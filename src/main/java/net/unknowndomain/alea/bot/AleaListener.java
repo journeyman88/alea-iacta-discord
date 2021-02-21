@@ -20,11 +20,15 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.unknowndomain.alea.command.BasicCommand;
 import net.unknowndomain.alea.command.Command;
 import net.unknowndomain.alea.expr.ExpressionCommand;
+import net.unknowndomain.alea.messages.MsgBuilder;
 import net.unknowndomain.alea.messages.ReturnMsg;
+import net.unknowndomain.alea.parser.PicocliParser;
 import net.unknowndomain.alea.systems.ListSystemsCommand;
 import net.unknowndomain.alea.systems.RpgSystemCommand;
+import net.unknowndomain.alea.systems.RpgSystemOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.MessageAuthor;
@@ -33,6 +37,8 @@ import org.javacord.api.entity.message.MessageDecoration;
 import org.javacord.api.entity.user.User;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.listener.message.MessageCreateListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -42,7 +48,9 @@ public class AleaListener implements MessageCreateListener
 {
     public static final String PREFIX = "!alea";
     private static final Pattern PATTERN = Pattern.compile("^(" + PREFIX + ")(( +)(?<parameters>.*))?$");
-    private static final List<Command> AVAILABLE_COMMANDS = new ArrayList<>();
+    
+    private static final List<BasicCommand> AVAILABLE_COMMANDS = new ArrayList<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(AleaListener.class);
     
     static {
         AVAILABLE_COMMANDS.add(new ListSystemsCommand());
@@ -72,7 +80,42 @@ public class AleaListener implements MessageCreateListener
                 
                 if (parsedCmd.isPresent())
                 {
-                    ReturnMsg msg = parsedCmd.get().execCommand(params, callerId);
+                    Command cmd = parsedCmd.get();
+                    MsgBuilder bld = new MsgBuilder();
+                    ReturnMsg msg = bld.append("Error").build();
+                    if (cmd instanceof RpgSystemCommand)
+                    {
+                        RpgSystemCommand rpg = (RpgSystemCommand) cmd;
+                        RpgSystemOptions options = rpg.buildOptions();
+                        Pattern sysPattern = Pattern.compile("^(?<" + Command.CMD_NAME + ">" + rpg.getCommandRegex() + ")(( )(?<" + Command.CMD_PARAMS + ">.*))?$");
+                        Matcher sysFilter = sysPattern.matcher(params);
+                        if (sysFilter.matches())
+                        {
+                            String sysArgs = sysFilter.group(Command.CMD_PARAMS);
+                            if (sysArgs != null)
+                            {
+                                PicocliParser.parseArgs(options, sysArgs.split(" "));
+                            }
+                            else
+                            {
+                                PicocliParser.parseArgs(options, "-h");
+                            }
+                            Optional<ReturnMsg> ret = rpg.execCommand(options, callerId);
+                            if (ret.isPresent())
+                            {
+                                msg = ret.get();
+                            }
+                            else
+                            {
+                                msg = PicocliParser.printHelp(sysFilter.group(Command.CMD_NAME), options);
+                            }
+                        }
+                    }
+                    if (cmd instanceof BasicCommand)
+                    {
+                        BasicCommand basic = (BasicCommand) cmd;
+                        msg = basic.execCommand(params, callerId);
+                    }
                     MsgFormatter.appendMessage(builder, msg);
                     builder.send(event.getChannel());
                 }

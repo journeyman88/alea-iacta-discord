@@ -75,12 +75,6 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>alea-iacta-sys-vampire5</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
             <artifactId>alea-iacta-sys-darkeye5</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
@@ -135,7 +129,18 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>alea-iacta-parser-picocli</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>alea-iacta-sys-walkthrough</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>alea-iacta-sys-vampire5</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>

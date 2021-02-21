@@ -18,8 +18,11 @@ package net.unknowndomain.alea.bot;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.unknowndomain.alea.command.Command;
 import net.unknowndomain.alea.messages.ReturnMsg;
+import net.unknowndomain.alea.parser.PicocliParser;
 import net.unknowndomain.alea.systems.RpgSystemCommand;
+import net.unknowndomain.alea.systems.RpgSystemOptions;
 import org.javacord.api.entity.message.MessageAuthor;
 import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.user.User;
@@ -39,7 +42,7 @@ public class SystemListener implements MessageCreateListener
     public SystemListener(RpgSystemCommand system)
     {
         this.system = system;
-        PATTERN = Pattern.compile("^!(?<command>" + system.getCommandRegex() + ")(( )(?<parameters>.*))?$");
+        PATTERN = Pattern.compile("^!(?<" + Command.CMD_NAME + ">" + system.getCommandRegex() + ")(( )(?<" + Command.CMD_PARAMS + ">.*))?$");
     }
     
     @Override
@@ -49,10 +52,28 @@ public class SystemListener implements MessageCreateListener
         if (checkPrefix.matches()) {
             MessageBuilder builder = new MessageBuilder();
             String cmdLine = event.getMessageContent().substring(1);
+            RpgSystemOptions options = system.buildOptions();
+            String args = checkPrefix.group(Command.CMD_PARAMS);
+            if (args != null)
+            {
+                PicocliParser.parseArgs(options, args.split(" "));
+            }
+            else
+            {
+                PicocliParser.parseArgs(options, "-h");
+            }
             Optional<Long> callerId = readUserId(event.getMessageAuthor());
-            ReturnMsg msg = system.execCommand(cmdLine, callerId);
-            MsgFormatter.appendMessage(builder, msg);
+            Optional<ReturnMsg> msg = system.execCommand(options, callerId);
+            if (msg.isPresent())
+            {
+                MsgFormatter.appendMessage(builder, msg.get());
+            }
+            else
+            {
+                MsgFormatter.appendMessage(builder, PicocliParser.printHelp(checkPrefix.group(Command.CMD_NAME), options));
+            }
             builder.send(event.getChannel());
+            
         }
     }
     
