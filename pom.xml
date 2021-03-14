@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>net.unknowndomain.alea</groupId>
+        <groupId>net.unknowndomain</groupId>
         <artifactId>alea-iacta-est</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
@@ -15,10 +15,23 @@
         the main logic resides in the alea-iacta-core artifact.
     </description>
     
+    <properties>
+        <log4j2.version>2.13.0</log4j2.version>
+        <cache2k.version>1.6.0.Final</cache2k.version>
+    </properties>
+    
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+    
     <dependencies>
         <dependency>
             <groupId>commons-daemon</groupId>
             <artifactId>commons-daemon</artifactId>
+            <version>1.2.4</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -29,15 +42,18 @@
         <dependency>
             <groupId>org.javacord</groupId>
             <artifactId>javacord</artifactId>
+            <version>3.1.2</version>
             <type>pom</type>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
+            <version>${log4j2.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j2.version}</version>
         </dependency>
         <dependency>
             <groupId>commons-cli</groupId>

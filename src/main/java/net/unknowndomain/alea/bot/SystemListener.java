@@ -62,7 +62,12 @@ public class SystemListener implements MessageCreateListener
             {
                 PicocliParser.parseArgs(options, "-h");
             }
-            Optional<Long> callerId = readUserId(event.getMessageAuthor());
+            MessageAuthor author = event.getMessageAuthor();
+            Optional<Long> callerId = readUserId(author);
+            if (author.isUser() && !event.isPrivateMessage() && author.asUser().isPresent())
+            {
+                builder.append(author.asUser().get()).appendNewLine();
+            }
             Optional<ReturnMsg> msg = system.execCommand(options, callerId);
             if (msg.isPresent())
             {
