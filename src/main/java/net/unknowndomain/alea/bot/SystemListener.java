@@ -64,10 +64,11 @@ public class SystemListener implements MessageCreateListener
             }
             MessageAuthor author = event.getMessageAuthor();
             Optional<Long> callerId = readUserId(author);
-            if (author.isUser() && !event.isPrivateMessage() && author.asUser().isPresent())
-            {
-                builder.append(author.asUser().get()).appendNewLine();
-            }
+            builder.replyTo(event.getMessageId());
+//            if (author.isUser() && !event.isPrivateMessage() && author.asUser().isPresent())
+//            {
+//                builder.append(author.asUser().get()).appendNewLine();
+//            }
             Optional<ReturnMsg> msg = system.execCommand(options, callerId);
             if (msg.isPresent())
             {

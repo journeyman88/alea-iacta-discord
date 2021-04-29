@@ -31,6 +31,7 @@ import net.unknowndomain.alea.systems.RpgSystemCommand;
 import net.unknowndomain.alea.systems.RpgSystemOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.javacord.api.entity.channel.TextChannel;
+import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.MessageAuthor;
 import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.MessageDecoration;
@@ -72,10 +73,11 @@ public class AleaListener implements MessageCreateListener
                 MessageBuilder builder = new MessageBuilder();
                 MessageAuthor author = event.getMessageAuthor();
                 Optional<Long> callerId = readUserId(author);
-                if (author.isUser() && !event.isPrivateMessage() && author.asUser().isPresent())
-                {
-                    builder.append(author.asUser().get()).appendNewLine();
-                }
+                builder.replyTo(event.getMessageId());
+//                if (author.isUser() && !event.isPrivateMessage() && author.asUser().isPresent())
+//                {
+//                    builder.append(author.asUser().get()).appendNewLine();
+//                }
                 Optional<Command> parsedCmd = parseCommand(params);
                 
                 if (parsedCmd.isPresent())
