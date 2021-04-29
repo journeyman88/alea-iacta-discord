@@ -1,5 +1,5 @@
-# alea-iacta-est
-Alea Iacta Est is a Discord bot designed to help running RPG sessions over the network.
+# alea-iacta-discord
+The Discord bot - developed inside the alea-iacta-est project - to help running RPG sessions over the network.
 
 It can be added to your server using this link:
 
