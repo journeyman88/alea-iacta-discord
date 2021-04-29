@@ -51,12 +51,21 @@ public class AleaConfigParser
                         .desc("Enable system specific listeners")
                         .build()
         );
+        CMD_OPTIONS.addOption(
+                Option.builder("s")
+                        .longOpt("settingsRepository")
+                        .hasArg()
+                        .required()
+                        .argName("settingsDir")
+                        .desc("Defines the directory in which is located the settings repository")
+                        .build()
+        );
     }
     
     public static AleaConfig parseConfig(String ... args) throws ParseException
     {
         CommandLine cmd = PARSER.parse(CMD_OPTIONS, args);
-        AleaConfig retVal = new AleaConfig(cmd.getOptionValue("discordToken"), cmd.hasOption("systemListener"));
+        AleaConfig retVal = new AleaConfig(cmd.getOptionValue("discordToken"), cmd.hasOption("systemListener"), cmd.getOptionValue("settingsRepository"));
         return retVal;
     }
     

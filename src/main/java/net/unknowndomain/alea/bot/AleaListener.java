@@ -17,6 +17,7 @@ package net.unknowndomain.alea.bot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,12 +27,13 @@ import net.unknowndomain.alea.expr.ExpressionCommand;
 import net.unknowndomain.alea.messages.MsgBuilder;
 import net.unknowndomain.alea.messages.ReturnMsg;
 import net.unknowndomain.alea.parser.PicocliParser;
+import net.unknowndomain.alea.settings.GuildSettings;
+import net.unknowndomain.alea.settings.SettingsRepository;
 import net.unknowndomain.alea.systems.ListSystemsCommand;
 import net.unknowndomain.alea.systems.RpgSystemCommand;
 import net.unknowndomain.alea.systems.RpgSystemOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.javacord.api.entity.channel.TextChannel;
-import org.javacord.api.entity.message.Message;
 import org.javacord.api.entity.message.MessageAuthor;
 import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.MessageDecoration;
@@ -53,9 +55,16 @@ public class AleaListener implements MessageCreateListener
     private static final List<BasicCommand> AVAILABLE_COMMANDS = new ArrayList<>();
     private static final Logger LOGGER = LoggerFactory.getLogger(AleaListener.class);
     
+    private final SettingsRepository settingsRepository;
+    
     static {
         AVAILABLE_COMMANDS.add(new ListSystemsCommand());
         AVAILABLE_COMMANDS.add(new ExpressionCommand());
+    }
+    
+    public AleaListener(SettingsRepository settingsRepository)
+    {
+        this.settingsRepository = settingsRepository;
     }
     
     @Override
@@ -63,6 +72,19 @@ public class AleaListener implements MessageCreateListener
     {
         Matcher checkPrefix = PATTERN.matcher(event.getMessageContent());
         if (checkPrefix.matches()) {
+            Locale locale = Locale.ENGLISH;
+            LOGGER.debug("Default Locale: {}", locale);
+            if (event.getServer().isPresent())
+            {
+                Long guildId = event.getServer().get().getId();
+                Optional<GuildSettings> guildSettings = settingsRepository.loadGuildSettings(guildId);
+                if (guildSettings.isPresent())
+                {
+                    LOGGER.debug("GuildSettings found");
+                    locale = guildSettings.get().getLanguage();
+                }
+            }
+            LOGGER.debug("Locale: {}", locale);
             String params = checkPrefix.group("parameters"); 
             if (params == null || params.isEmpty() || params.startsWith("help"))
             {
@@ -74,10 +96,7 @@ public class AleaListener implements MessageCreateListener
                 MessageAuthor author = event.getMessageAuthor();
                 Optional<Long> callerId = readUserId(author);
                 builder.replyTo(event.getMessageId());
-//                if (author.isUser() && !event.isPrivateMessage() && author.asUser().isPresent())
-//                {
-//                    builder.append(author.asUser().get()).appendNewLine();
-//                }
+                
                 Optional<Command> parsedCmd = parseCommand(params);
                 
                 if (parsedCmd.isPresent())
@@ -102,14 +121,14 @@ public class AleaListener implements MessageCreateListener
                             {
                                 PicocliParser.parseArgs(options, "-h");
                             }
-                            Optional<ReturnMsg> ret = rpg.execCommand(options, callerId);
+                            Optional<ReturnMsg> ret = rpg.execCommand(options, locale, callerId);
                             if (ret.isPresent())
                             {
                                 msg = ret.get();
                             }
                             else
                             {
-                                msg = PicocliParser.printHelp(sysFilter.group(Command.CMD_NAME), options);
+                                msg = PicocliParser.printHelp(sysFilter.group(Command.CMD_NAME), options, locale);
                             }
                         }
                     }

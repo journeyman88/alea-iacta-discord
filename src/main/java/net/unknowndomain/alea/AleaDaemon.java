@@ -20,6 +20,7 @@ import net.unknowndomain.alea.bot.AleaListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import net.unknowndomain.alea.settings.SettingsRepository;
 import net.unknowndomain.alea.systems.RpgSystemCommand;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
@@ -62,14 +63,15 @@ public class AleaDaemon implements Daemon
     @Override
     public void start() throws Exception
     {
+        SettingsRepository settingsRepository = new SettingsRepository(aleaConfig.getSettingsDir());
         DiscordApiBuilder apiBuilder = new DiscordApiBuilder();
         apiBuilder.setToken(aleaConfig.getDiscordToken());
-        apiBuilder.addListener(new AleaListener());
+        apiBuilder.addListener(new AleaListener(settingsRepository));
         if (aleaConfig.isSystemListener())
         {
             for (RpgSystemCommand system : RpgSystemCommand.LOADER)
             {
-                apiBuilder.addListener(new SystemListener(system));
+                apiBuilder.addListener(new SystemListener(system, settingsRepository));
             }
         }
         apiBuilder.setRecommendedTotalShards().join();

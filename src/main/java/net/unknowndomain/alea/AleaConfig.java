@@ -15,6 +15,9 @@
  */
 package net.unknowndomain.alea;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 /**
  *
  * @author journeyman
@@ -23,11 +26,13 @@ public class AleaConfig
 {
     private final String discordToken;
     private final boolean systemListener;
+    private final String settingsDir;
     
-    public AleaConfig(String discordToken, boolean systemListener)
+    public AleaConfig(String discordToken, boolean systemListener, String settingsDir)
     {
         this.discordToken = discordToken;
         this.systemListener = systemListener;
+        this.settingsDir = settingsDir;
     }
 
     public String getDiscordToken()
@@ -38,5 +43,10 @@ public class AleaConfig
     public boolean isSystemListener()
     {
         return systemListener;
+    }
+
+    public String getSettingsDir()
+    {
+        return settingsDir;
     }
 }

@@ -15,12 +15,15 @@
  */
 package net.unknowndomain.alea.bot;
 
+import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.unknowndomain.alea.command.Command;
 import net.unknowndomain.alea.messages.ReturnMsg;
 import net.unknowndomain.alea.parser.PicocliParser;
+import net.unknowndomain.alea.settings.GuildSettings;
+import net.unknowndomain.alea.settings.SettingsRepository;
 import net.unknowndomain.alea.systems.RpgSystemCommand;
 import net.unknowndomain.alea.systems.RpgSystemOptions;
 import org.javacord.api.entity.message.MessageAuthor;
@@ -38,10 +41,12 @@ public class SystemListener implements MessageCreateListener
     private final Pattern PATTERN; 
     
     private final RpgSystemCommand system;
+    private final SettingsRepository settingsRepository;
     
-    public SystemListener(RpgSystemCommand system)
+    public SystemListener(RpgSystemCommand system, SettingsRepository settingsRepository)
     {
         this.system = system;
+        this.settingsRepository = settingsRepository;
         PATTERN = Pattern.compile("^!(?<" + Command.CMD_NAME + ">" + system.getCommandRegex() + ")(( )(?<" + Command.CMD_PARAMS + ">.*))?$");
     }
     
@@ -50,6 +55,16 @@ public class SystemListener implements MessageCreateListener
     {
         Matcher checkPrefix = PATTERN.matcher(event.getMessageContent());
         if (checkPrefix.matches()) {
+            Locale locale = Locale.ENGLISH;
+            if (event.getServer().isPresent())
+            {
+                Long guildId = event.getServer().get().getId();
+                Optional<GuildSettings> guildSettings = settingsRepository.loadGuildSettings(guildId);
+                if (guildSettings.isPresent())
+                {
+                    locale = guildSettings.get().getLanguage();
+                }
+            }
             MessageBuilder builder = new MessageBuilder();
             String cmdLine = event.getMessageContent().substring(1);
             RpgSystemOptions options = system.buildOptions();
@@ -69,14 +84,14 @@ public class SystemListener implements MessageCreateListener
 //            {
 //                builder.append(author.asUser().get()).appendNewLine();
 //            }
-            Optional<ReturnMsg> msg = system.execCommand(options, callerId);
+            Optional<ReturnMsg> msg = system.execCommand(options, locale, callerId);
             if (msg.isPresent())
             {
                 MsgFormatter.appendMessage(builder, msg.get());
             }
             else
             {
-                MsgFormatter.appendMessage(builder, PicocliParser.printHelp(checkPrefix.group(Command.CMD_NAME), options));
+                MsgFormatter.appendMessage(builder, PicocliParser.printHelp(checkPrefix.group(Command.CMD_NAME), options, locale));
             }
             builder.send(event.getChannel());
             
