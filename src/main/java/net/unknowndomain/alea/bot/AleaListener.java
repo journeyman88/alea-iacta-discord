@@ -27,6 +27,7 @@ import net.unknowndomain.alea.expr.ExpressionCommand;
 import net.unknowndomain.alea.messages.MsgBuilder;
 import net.unknowndomain.alea.messages.ReturnMsg;
 import net.unknowndomain.alea.parser.PicocliParser;
+import net.unknowndomain.alea.settings.GuildConfigCommand;
 import net.unknowndomain.alea.settings.GuildSettings;
 import net.unknowndomain.alea.settings.SettingsRepository;
 import net.unknowndomain.alea.systems.ListSystemsCommand;
@@ -56,6 +57,7 @@ public class AleaListener implements MessageCreateListener
     private static final Logger LOGGER = LoggerFactory.getLogger(AleaListener.class);
     
     private final SettingsRepository settingsRepository;
+    private final List<Command> SETTINGS_COMMANDS = new ArrayList<>();
     
     static {
         AVAILABLE_COMMANDS.add(new ListSystemsCommand());
@@ -65,6 +67,7 @@ public class AleaListener implements MessageCreateListener
     public AleaListener(SettingsRepository settingsRepository)
     {
         this.settingsRepository = settingsRepository;
+        SETTINGS_COMMANDS.add(new GuildConfigCommand(settingsRepository));
     }
     
     @Override
@@ -74,9 +77,10 @@ public class AleaListener implements MessageCreateListener
         if (checkPrefix.matches()) {
             Locale locale = Locale.ENGLISH;
             LOGGER.debug("Default Locale: {}", locale);
+            Long guildId = null;
             if (event.getServer().isPresent())
             {
-                Long guildId = event.getServer().get().getId();
+                guildId = event.getServer().get().getId();
                 Optional<GuildSettings> guildSettings = settingsRepository.loadGuildSettings(guildId);
                 if (guildSettings.isPresent())
                 {
@@ -84,11 +88,12 @@ public class AleaListener implements MessageCreateListener
                     locale = guildSettings.get().getLanguage();
                 }
             }
+            boolean guildAdmin = event.getMessageAuthor().isServerAdmin();
             LOGGER.debug("Locale: {}", locale);
             String params = checkPrefix.group("parameters"); 
             if (params == null || params.isEmpty() || params.startsWith("help"))
             {
-                printHelp(event.getChannel());
+                printHelp(event.getChannel(), guildAdmin);
             }
             else
             {
@@ -102,40 +107,17 @@ public class AleaListener implements MessageCreateListener
                 if (parsedCmd.isPresent())
                 {
                     Command cmd = parsedCmd.get();
-                    MsgBuilder bld = new MsgBuilder();
-                    ReturnMsg msg = bld.append("Error").build();
-                    if (cmd instanceof RpgSystemCommand)
+                    ReturnMsg msg;
+                    LOGGER.debug("guildAdmin:", guildAdmin);
+                    LOGGER.debug("guildId:", guildId);
+                    if ((cmd instanceof GuildConfigCommand) && (guildId != null) && (guildAdmin))
                     {
-                        RpgSystemCommand rpg = (RpgSystemCommand) cmd;
-                        RpgSystemOptions options = rpg.buildOptions();
-                        Pattern sysPattern = Pattern.compile("^(?<" + Command.CMD_NAME + ">" + rpg.getCommandRegex() + ")(( )(?<" + Command.CMD_PARAMS + ">.*))?$");
-                        Matcher sysFilter = sysPattern.matcher(params);
-                        if (sysFilter.matches())
-                        {
-                            String sysArgs = sysFilter.group(Command.CMD_PARAMS);
-                            if (sysArgs != null)
-                            {
-                                PicocliParser.parseArgs(options, sysArgs.split(" "));
-                            }
-                            else
-                            {
-                                PicocliParser.parseArgs(options, "-h");
-                            }
-                            Optional<ReturnMsg> ret = rpg.execCommand(options, locale, callerId);
-                            if (ret.isPresent())
-                            {
-                                msg = ret.get();
-                            }
-                            else
-                            {
-                                msg = PicocliParser.printHelp(sysFilter.group(Command.CMD_NAME), options, locale);
-                            }
-                        }
+                        GuildConfigCommand gcc = (GuildConfigCommand) cmd;
+                        msg = gcc.execCommand(params, guildId);
                     }
-                    if (cmd instanceof BasicCommand)
+                    else
                     {
-                        BasicCommand basic = (BasicCommand) cmd;
-                        msg = basic.execCommand(params, callerId);
+                        msg = runCommand(cmd, params, locale, callerId);
                     }
                     MsgFormatter.appendMessage(builder, msg);
                     builder.send(event.getChannel());
@@ -144,15 +126,62 @@ public class AleaListener implements MessageCreateListener
                 {
                     builder.append("Error: command not available");
                     builder.send(event.getChannel());
-                    printHelp(event.getChannel());
+                    printHelp(event.getChannel(), guildAdmin);
                 }
             }
         }
     }
     
+    private ReturnMsg runCommand(Command cmd, String params, Locale locale, Optional<Long> callerId)
+    {
+        MsgBuilder bld = new MsgBuilder();
+        ReturnMsg msg = bld.append("Error").build();
+        if (cmd instanceof RpgSystemCommand)
+        {
+            RpgSystemCommand rpg = (RpgSystemCommand) cmd;
+            RpgSystemOptions options = rpg.buildOptions();
+            Pattern sysPattern = Pattern.compile("^(?<" + Command.CMD_NAME + ">" + rpg.getCommandRegex() + ")(( )(?<" + Command.CMD_PARAMS + ">.*))?$");
+            Matcher sysFilter = sysPattern.matcher(params);
+            if (sysFilter.matches())
+            {
+                String sysArgs = sysFilter.group(Command.CMD_PARAMS);
+                if (sysArgs != null)
+                {
+                    PicocliParser.parseArgs(options, sysArgs.split(" "));
+                }
+                else
+                {
+                    PicocliParser.parseArgs(options, "-h");
+                }
+                Optional<ReturnMsg> ret = rpg.execCommand(options, locale, callerId);
+                if (ret.isPresent())
+                {
+                    msg = ret.get();
+                }
+                else
+                {
+                    msg = PicocliParser.printHelp(sysFilter.group(Command.CMD_NAME), options, locale);
+                }
+            }
+        }
+        if (cmd instanceof BasicCommand)
+        {
+            BasicCommand basic = (BasicCommand) cmd;
+            msg = basic.execCommand(params, callerId);
+        }
+        return msg;
+    }
+    
     private Optional<Command> parseCommand(String parameters)
     {
         for (Command cmd : AVAILABLE_COMMANDS)
+        {
+            if (cmd.checkCommand(parameters))
+            {
+                return Optional.of(cmd);
+            }
+        }
+        for (Command cmd : SETTINGS_COMMANDS)
         {
             if (cmd.checkCommand(parameters))
             {
@@ -181,7 +210,7 @@ public class AleaListener implements MessageCreateListener
         return retVal;
     }
     
-    private void printHelp(TextChannel channel)
+    private void printHelp(TextChannel channel, boolean guildAdmin)
     {
         MessageBuilder output = new MessageBuilder();
         StringBuilder sb = new StringBuilder("Usage: ").append("!alea <command> <params>\n");
@@ -190,6 +219,10 @@ public class AleaListener implements MessageCreateListener
         sb.append(StringUtils.rightPad("   system", 20)).append(" | Print the list of all available systems and their commands").append("\n");
         sb.append(StringUtils.rightPad("   expr <expression>", 20)).append(" | Solve the dice expression (example: 1d8+2d4-1d6+15-7)").append("\n");
         sb.append(StringUtils.rightPad("   <system> <params>", 20)).append(" | Roll a system specific roll (see <system> --help)").append("\n");
+        if (guildAdmin)
+        {
+            sb.append(StringUtils.rightPad("   guild-config", 20)).append(" | (WIP) Set config variables for the current guild").append("\n");
+        }
         output.append(sb.toString(), MessageDecoration.CODE_LONG);
         output.send(channel);
     }

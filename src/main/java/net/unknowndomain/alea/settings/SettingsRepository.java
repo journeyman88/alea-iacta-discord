@@ -98,5 +98,19 @@ public class SettingsRepository
         }
     }
     
+    public synchronized void removeGuildSettings(Long guildId)
+    {
+        try
+        {
+            Path guildPath = settingsDir.resolve(GuildSettings.PREFIX).resolve(guildId + ".json");
+            Files.deleteIfExists(guildPath);
+            guildsRepo.remove(guildId);
+        } 
+        catch (IOException ex)
+        {
+            LOGGER.error(null, ex);
+        }
+    }
+    
     
 }
