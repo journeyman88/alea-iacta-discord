@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.unknowndomain.alea.command.BasicCommand;
@@ -48,7 +49,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author journeyman
  */
-public class AleaListener implements MessageCreateListener
+public class AleaListener extends GenericListener implements MessageCreateListener
 {
     public static final String PREFIX = "!alea";
     private static final Pattern PATTERN = Pattern.compile("^(" + PREFIX + ")(( +)(?<parameters>.*))?$");
@@ -64,8 +65,9 @@ public class AleaListener implements MessageCreateListener
         AVAILABLE_COMMANDS.add(new ExpressionCommand());
     }
     
-    public AleaListener(SettingsRepository settingsRepository)
+    public AleaListener(SettingsRepository settingsRepository, UUID namespace)
     {
+        super(namespace);
         this.settingsRepository = settingsRepository;
         SETTINGS_COMMANDS.add(new GuildConfigCommand(settingsRepository));
     }
@@ -197,17 +199,6 @@ public class AleaListener implements MessageCreateListener
         }
         
         return Optional.empty();
-    }
-    
-    private Optional<Long> readUserId(MessageAuthor author)
-    {
-        Optional<Long> retVal = Optional.empty();
-        if (author.isUser() && author.asUser().isPresent())
-        {
-            User discordUser = author.asUser().get();
-            retVal = Optional.of(discordUser.getId());
-        }
-        return retVal;
     }
     
     private void printHelp(TextChannel channel, boolean guildAdmin)

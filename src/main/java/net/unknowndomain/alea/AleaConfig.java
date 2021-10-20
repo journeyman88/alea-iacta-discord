@@ -15,8 +15,9 @@
  */
 package net.unknowndomain.alea;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import com.fasterxml.uuid.EthernetAddress;
+import com.fasterxml.uuid.Generators;
+import java.util.UUID;
 
 /**
  *
@@ -27,12 +28,24 @@ public class AleaConfig
     private final String discordToken;
     private final boolean systemListener;
     private final String settingsDir;
+    private final UUID namespace;
     
     public AleaConfig(String discordToken, boolean systemListener, String settingsDir)
+    {
+        this(
+                discordToken,
+                systemListener,
+                settingsDir,
+                Generators.timeBasedGenerator(EthernetAddress.fromInterface()).generate()
+        );
+    }
+    
+    public AleaConfig(String discordToken, boolean systemListener, String settingsDir, UUID namespace)
     {
         this.discordToken = discordToken;
         this.systemListener = systemListener;
         this.settingsDir = settingsDir;
+        this.namespace = namespace;
     }
 
     public String getDiscordToken()
@@ -48,5 +61,10 @@ public class AleaConfig
     public String getSettingsDir()
     {
         return settingsDir;
+    }
+
+    public UUID getNamespace()
+    {
+        return namespace;
     }
 }

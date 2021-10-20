@@ -66,12 +66,12 @@ public class AleaDaemon implements Daemon
         SettingsRepository settingsRepository = new SettingsRepository(aleaConfig.getSettingsDir());
         DiscordApiBuilder apiBuilder = new DiscordApiBuilder();
         apiBuilder.setToken(aleaConfig.getDiscordToken());
-        apiBuilder.addListener(new AleaListener(settingsRepository));
+        apiBuilder.addListener(new AleaListener(settingsRepository, aleaConfig.getNamespace()));
         if (aleaConfig.isSystemListener())
         {
             for (RpgSystemCommand system : RpgSystemCommand.LOADER)
             {
-                apiBuilder.addListener(new SystemListener(system, settingsRepository));
+                apiBuilder.addListener(new SystemListener(system, settingsRepository, aleaConfig.getNamespace()));
             }
         }
         apiBuilder.setRecommendedTotalShards().join();

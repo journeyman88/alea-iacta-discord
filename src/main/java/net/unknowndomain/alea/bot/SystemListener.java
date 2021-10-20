@@ -17,6 +17,7 @@ package net.unknowndomain.alea.bot;
 
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.unknowndomain.alea.command.Command;
@@ -28,7 +29,6 @@ import net.unknowndomain.alea.systems.RpgSystemCommand;
 import net.unknowndomain.alea.systems.RpgSystemOptions;
 import org.javacord.api.entity.message.MessageAuthor;
 import org.javacord.api.entity.message.MessageBuilder;
-import org.javacord.api.entity.user.User;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.listener.message.MessageCreateListener;
 
@@ -36,15 +36,16 @@ import org.javacord.api.listener.message.MessageCreateListener;
  *
  * @author journeyman
  */
-public class SystemListener implements MessageCreateListener
+public class SystemListener extends GenericListener implements MessageCreateListener
 {
     private final Pattern PATTERN; 
     
     private final RpgSystemCommand system;
     private final SettingsRepository settingsRepository;
     
-    public SystemListener(RpgSystemCommand system, SettingsRepository settingsRepository)
+    public SystemListener(RpgSystemCommand system, SettingsRepository settingsRepository, UUID namespace)
     {
+        super(namespace);
         this.system = system;
         this.settingsRepository = settingsRepository;
         PATTERN = Pattern.compile("^!(?<" + Command.CMD_NAME + ">" + system.getCommandRegex() + ")(( )(?<" + Command.CMD_PARAMS + ">.*))?$");
@@ -96,17 +97,6 @@ public class SystemListener implements MessageCreateListener
             builder.send(event.getChannel());
             
         }
-    }
-    
-    private Optional<Long> readUserId(MessageAuthor author)
-    {
-        Optional<Long> retVal = Optional.empty();
-        if (author.isUser() && author.asUser().isPresent())
-        {
-            User discordUser = author.asUser().get();
-            retVal = Optional.of(discordUser.getId());
-        }
-        return retVal;
     }
     
 }
