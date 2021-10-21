@@ -23,6 +23,7 @@ import java.util.regex.Pattern;
 import net.unknowndomain.alea.command.Command;
 import net.unknowndomain.alea.messages.ReturnMsg;
 import net.unknowndomain.alea.parser.PicocliParser;
+import net.unknowndomain.alea.roll.GenericResult;
 import net.unknowndomain.alea.settings.GuildSettings;
 import net.unknowndomain.alea.settings.SettingsRepository;
 import net.unknowndomain.alea.systems.RpgSystemCommand;
@@ -79,16 +80,17 @@ public class SystemListener extends GenericListener implements MessageCreateList
                 PicocliParser.parseArgs(options, "-h");
             }
             MessageAuthor author = event.getMessageAuthor();
-            Optional<Long> callerId = readUserId(author);
+//            Optional<Long> callerId = readUserId(author);
+            Optional<UUID> callerId = buildCallerId(author);
             builder.replyTo(event.getMessageId());
 //            if (author.isUser() && !event.isPrivateMessage() && author.asUser().isPresent())
 //            {
 //                builder.append(author.asUser().get()).appendNewLine();
 //            }
-            Optional<ReturnMsg> msg = system.execCommand(options, locale, callerId);
-            if (msg.isPresent())
+            Optional<GenericResult> res = system.execCommand(options, locale, callerId);
+            if (res.isPresent())
             {
-                MsgFormatter.appendMessage(builder, msg.get());
+                MsgFormatter.appendMessage(builder, res.get().getMessage());
             }
             else
             {

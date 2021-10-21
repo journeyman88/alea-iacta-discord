@@ -24,10 +24,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.unknowndomain.alea.command.BasicCommand;
 import net.unknowndomain.alea.command.Command;
+import net.unknowndomain.alea.command.PrintableOutput;
 import net.unknowndomain.alea.expr.ExpressionCommand;
 import net.unknowndomain.alea.messages.MsgBuilder;
 import net.unknowndomain.alea.messages.ReturnMsg;
 import net.unknowndomain.alea.parser.PicocliParser;
+import net.unknowndomain.alea.roll.GenericResult;
 import net.unknowndomain.alea.settings.GuildConfigCommand;
 import net.unknowndomain.alea.settings.GuildSettings;
 import net.unknowndomain.alea.settings.SettingsRepository;
@@ -101,7 +103,8 @@ public class AleaListener extends GenericListener implements MessageCreateListen
             {
                 MessageBuilder builder = new MessageBuilder();
                 MessageAuthor author = event.getMessageAuthor();
-                Optional<Long> callerId = readUserId(author);
+//                Optional<Long> callerId = readUserId(author);
+                Optional<UUID> callerId = buildCallerId(author);
                 builder.replyTo(event.getMessageId());
                 
                 Optional<Command> parsedCmd = parseCommand(params);
@@ -134,7 +137,7 @@ public class AleaListener extends GenericListener implements MessageCreateListen
         }
     }
     
-    private ReturnMsg runCommand(Command cmd, String params, Locale locale, Optional<Long> callerId)
+    private ReturnMsg runCommand(Command cmd, String params, Locale locale, Optional<UUID> callerId)
     {
         MsgBuilder bld = new MsgBuilder();
         ReturnMsg msg = bld.append("Error").build();
@@ -155,10 +158,10 @@ public class AleaListener extends GenericListener implements MessageCreateListen
                 {
                     PicocliParser.parseArgs(options, "-h");
                 }
-                Optional<ReturnMsg> ret = rpg.execCommand(options, locale, callerId);
+                Optional<GenericResult> ret = rpg.execCommand(options, locale, callerId);
                 if (ret.isPresent())
                 {
-                    msg = ret.get();
+                    msg = ret.get().getMessage();
                 }
                 else
                 {
@@ -169,7 +172,15 @@ public class AleaListener extends GenericListener implements MessageCreateListen
         if (cmd instanceof BasicCommand)
         {
             BasicCommand basic = (BasicCommand) cmd;
-            msg = basic.execCommand(params, callerId);
+            Optional<PrintableOutput> ret = basic.execCommand(params, callerId);
+            if (ret.isPresent())
+            {
+                msg = ret.get().getMessage();
+            }
+            else
+            {
+                msg = basic.printHelp(locale);
+            }
         }
         return msg;
     }
