@@ -90,7 +90,7 @@ public class SystemListener extends GenericListener implements MessageCreateList
             Optional<GenericResult> res = system.execCommand(options, locale, callerId);
             if (res.isPresent())
             {
-                MsgFormatter.appendMessage(builder, res.get().getMessage());
+                MsgFormatter.appendMessage(builder, res.get().buildMessage());
             }
             else
             {
