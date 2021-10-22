@@ -15,6 +15,7 @@
  */
 package net.unknowndomain.alea.bot;
 
+import net.unknowndomain.alea.GenericListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -161,7 +162,7 @@ public class AleaListener extends GenericListener implements MessageCreateListen
                 Optional<GenericResult> ret = rpg.execCommand(options, locale, callerId);
                 if (ret.isPresent())
                 {
-                    msg = ret.get().getMessage();
+                    msg = ret.get().buildMessage();
                 }
                 else
                 {
@@ -175,7 +176,7 @@ public class AleaListener extends GenericListener implements MessageCreateListen
             Optional<PrintableOutput> ret = basic.execCommand(params, callerId);
             if (ret.isPresent())
             {
-                msg = ret.get().getMessage();
+                msg = ret.get().buildMessage();
             }
             else
             {

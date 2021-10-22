@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.unknowndomain.alea.bot;
+package net.unknowndomain.alea;
 
 import com.fasterxml.uuid.Generators;
 import java.util.Optional;
@@ -34,6 +34,12 @@ public abstract class GenericListener
         this.namespace = namespace;
     }
     
+    protected Optional<Long> readUserId(User user)
+    {
+        Optional<Long> retVal = Optional.of(user.getId());
+        return retVal;
+    }
+    
     protected Optional<Long> readUserId(MessageAuthor author)
     {
         Optional<Long> retVal = Optional.empty();
@@ -41,6 +47,18 @@ public abstract class GenericListener
         {
             User discordUser = author.asUser().get();
             retVal = Optional.of(discordUser.getId());
+        }
+        return retVal;
+    }
+    
+    protected Optional<UUID> buildCallerId(User user)
+    {
+        Optional<UUID> retVal = Optional.empty();
+        Optional<Long> userId = readUserId(user);
+        if (userId.isPresent())
+        {
+            UUID callerUuid = Generators.nameBasedGenerator(namespace).generate(userId.get() + "L");
+            retVal = Optional.of(callerUuid);
         }
         return retVal;
     }

@@ -25,6 +25,7 @@ import net.unknowndomain.alea.messages.MsgUrlPart;
 import net.unknowndomain.alea.messages.ReturnMsg;
 import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.MessageDecoration;
+import org.javacord.api.interaction.callback.InteractionMessageBuilderBase;
 
 /**
  *
@@ -60,6 +61,67 @@ public class MsgFormatter
                 msgBuilder.addAttachment(part.getUrl());
             }
         }
+    }
+    
+    public static void appendMessage(InteractionMessageBuilderBase msgBuilder, ReturnMsg message)
+    {
+        for (MsgPart msgPart : message.getParts())
+        {
+            if (msgPart instanceof MsgTextPart)
+            {
+                MsgTextPart part = (MsgTextPart) msgPart;
+                formatTextPart(msgBuilder, part);
+            }
+//            else if (msgPart instanceof MsgFilePart)
+//            {
+//                MsgFilePart part = (MsgFilePart) msgPart;
+//                msgBuilder..addAttachment(part.getData(), part.getFileName());
+//            }
+//            else if (msgPart instanceof MsgUrlPart)
+//            {
+//                MsgUrlPart part = (MsgUrlPart) msgPart;
+//                msgBuilder..addAttachment(part.getUrl());
+//            }
+        }
+    }
+    
+    private static void formatTextPart(InteractionMessageBuilderBase msgBuilder, MsgTextPart part)
+    {
+        Set<MessageDecoration> decor = new HashSet<>();
+        String text = part.getMsgText();
+        if (part.getMsgStyle().contains(MsgStyle.BOLD))
+        {
+            decor.add(MessageDecoration.BOLD);
+        }
+        if (part.getMsgStyle().contains(MsgStyle.ITALIC))
+        {
+            decor.add(MessageDecoration.ITALICS);
+        }
+        if (part.getMsgStyle().contains(MsgStyle.UNDERLINE))
+        {
+            decor.add(MessageDecoration.UNDERLINE);
+        }
+        if (part.getMsgStyle().contains(MsgStyle.STRIKETHRU))
+        {
+            decor.add(MessageDecoration.STRIKEOUT);
+        }
+        if (part.getMsgStyle().contains(MsgStyle.SPOILER))
+        {
+            decor.add(MessageDecoration.SPOILER);
+        }
+        if (part.getMsgStyle().contains(MsgStyle.CODE))
+        {
+            if (text.contains("\n") || text.length() > 120)
+            {
+                decor.add(MessageDecoration.CODE_LONG);
+            }
+            else
+            {
+                decor.add(MessageDecoration.CODE_SIMPLE);
+            }
+        }
+        MessageDecoration [] tmp = new MessageDecoration[decor.size()];
+        msgBuilder.append(text, decor.toArray(tmp));
     }
     
     private static void formatTextPart(MessageBuilder msgBuilder, MsgTextPart part)

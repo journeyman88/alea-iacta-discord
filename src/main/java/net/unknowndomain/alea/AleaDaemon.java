@@ -20,6 +20,7 @@ import net.unknowndomain.alea.bot.AleaListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import net.unknowndomain.alea.slash.AleaCommands;
 import net.unknowndomain.alea.settings.SettingsRepository;
 import net.unknowndomain.alea.systems.RpgSystemCommand;
 import org.apache.commons.daemon.Daemon;
@@ -27,6 +28,7 @@ import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
+import org.javacord.api.interaction.SlashCommand;
 import org.javacord.api.util.logging.ExceptionLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,12 +76,14 @@ public class AleaDaemon implements Daemon
                 apiBuilder.addListener(new SystemListener(system, settingsRepository, aleaConfig.getNamespace()));
             }
         }
+        apiBuilder.addListener(new AleaCommands(settingsRepository, aleaConfig.getNamespace()));
         apiBuilder.setRecommendedTotalShards().join();
         apiBuilder.loginAllShards().forEach(
                 shardFuture -> shardFuture
                         .thenAccept(api -> {
                             LOGGER.info(api.createBotInvite());
                             shards.add(api);
+                            AleaCommands.setupCommands(api);
                         })
                         .exceptionally(ExceptionLogger.get())
         );

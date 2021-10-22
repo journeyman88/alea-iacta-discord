@@ -193,6 +193,12 @@
             <optional>true</optional>
         </dependency>
                 -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>alea-iacta-sys-7thsea2</artifactId>
+            <version>1.0.1-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

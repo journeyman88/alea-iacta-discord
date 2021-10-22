@@ -15,6 +15,7 @@
  */
 package net.unknowndomain.alea.bot;
 
+import net.unknowndomain.alea.GenericListener;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
