@@ -65,6 +65,11 @@ public class SystemHelper
                                         SlashCommandOptionChoice.create("TRUE", 1)));
     }
     
+    public static SlashCommandOption buildListOption(String name, String desc, boolean required)
+    {
+        return SlashCommandOption.create(SlashCommandOptionType.STRING, name, desc, required);
+    }
+    
     public static boolean parseBooleanOption(SlashCommandInteraction interaction, String name)
     {
         boolean result = false;
@@ -95,10 +100,87 @@ public class SystemHelper
         return result;
     }
     
+    public static List<String> parseListOption(SlashCommandInteraction interaction, String name)
+    {
+        List<String> result = null;
+        Optional<SlashCommandInteractionOption> optBoolean = interaction.getOptionByName(name);
+        if (optBoolean.isPresent())
+        {
+            Optional<String> optBool = optBoolean.get().getStringValue();
+            if (optBool.isPresent())
+            {
+                result = new LinkedList<>();
+                result.addAll(Arrays.asList(optBool.get().split(",")));
+            }
+        }
+        return result;
+    }
+    
     public static String parseStringOption(SlashCommandInteraction interaction, String name)
     {
         String result = null;
         Optional<SlashCommandInteractionOption> optBoolean = interaction.getOptionByName(name);
+        if (optBoolean.isPresent())
+        {
+            Optional<String> optBool = optBoolean.get().getStringValue();
+            if (optBool.isPresent())
+            {
+                result = optBool.get();
+            }
+        }
+        return result;
+    }
+    
+    public static boolean parseBooleanSubOption(SlashCommandInteraction interaction, String name)
+    {
+        boolean result = false;
+        Optional<SlashCommandInteractionOption> optBoolean = interaction.getOptions().get(0).getOptionByName(name);
+        if (optBoolean.isPresent())
+        {
+            Optional<Integer> optBool = optBoolean.get().getIntValue();
+            if (optBool.isPresent())
+            {
+                result = optBool.get() > 0;
+            }
+        }
+        return result;
+    }
+    
+    public static Integer parseIntegerSubOption(SlashCommandInteraction interaction, String name)
+    {
+        Integer result = null;
+        Optional<SlashCommandInteractionOption> optBoolean = interaction.getOptions().get(0).getOptionByName(name);
+        if (optBoolean.isPresent())
+        {
+            Optional<Integer> optBool = optBoolean.get().getIntValue();
+            if (optBool.isPresent())
+            {
+                result = optBool.get();
+            }
+        }
+        return result;
+    }
+    
+    public static List<String> parseListSubOption(SlashCommandInteraction interaction, String name)
+    {
+        List<String> result = null;
+        Optional<SlashCommandInteractionOption> optBoolean = interaction.getOptions().get(0).getOptionByName(name);
+        if (optBoolean.isPresent())
+        {
+            Optional<String> optBool = optBoolean.get().getStringValue();
+            if (optBool.isPresent())
+            {
+                result = new LinkedList<>();
+                result.addAll(Arrays.asList(optBool.get().split(",")));
+            }
+        }
+        return result;
+    }
+    
+    public static String parseStringSubOption(SlashCommandInteraction interaction, String name)
+    {
+        String result = null;
+        Optional<SlashCommandInteractionOption> optBoolean = interaction.getOptions().get(0).getOptionByName(name);
         if (optBoolean.isPresent())
         {
             Optional<String> optBool = optBoolean.get().getStringValue();
@@ -115,28 +197,28 @@ public class SystemHelper
         List<SlashCommandOption> listParams = new LinkedList<>();
         List<Field> fields = new ArrayList<>();
         ResourceBundle i18n = null;
-//        Map<String,String> subcommanDesc = new TreeMap<>();
-//        Map<String,List<SlashCommandOption>> subcommands = new TreeMap<>();
+        Map<String,String> subcommanDesc = new TreeMap<>();
+        Map<String,List<SlashCommandOption>> subcommands = new TreeMap<>();
         if (options.getClass().isAnnotationPresent(RpgSystemData.class)) 
         {
             RpgSystemData data = options.getClass().getAnnotation(RpgSystemData.class);
             try 
             {
                 i18n = ResourceBundle.getBundle(data.bundleName(), lang);
-//                String [] groups = data.groupsName();
-//                for (int i=0; i< groups.length; i++)
-//                {
-//                    String gn = groups[i];
-//                    subcommands.put(gn, new LinkedList<>());
-//                    if (groups.length == data.groupsDesc().length)
-//                    {
-//                        subcommanDesc.put(gn, data.groupsDesc()[i]);
-//                    }
-//                    else
-//                    {
-//                        subcommanDesc.put(gn, gn);
-//                    }
-//                }
+                String [] groups = data.groupsName();
+                for (int i=0; i< groups.length; i++)
+                {
+                    String gn = groups[i];
+                    subcommands.put(gn, new LinkedList<>());
+                    if (groups.length == data.groupsDesc().length)
+                    {
+                        subcommanDesc.put(gn, data.groupsDesc()[i]);
+                    }
+                    else
+                    {
+                        subcommanDesc.put(gn, gn);
+                    }
+                }
             }
             catch (MissingResourceException ex)
             {
@@ -171,12 +253,12 @@ public class SystemHelper
                         optName = annotation.shortcode();
                     }
                     boolean req = annotation.required();
-//                    String groupName = null;
-//                    if (!annotation.groupName().isEmpty())
-//                    {
-//                        groupName = annotation.groupName();
-//                        req = annotation.groupRequired();
-//                    }
+                    String groupName = null;
+                    if (!annotation.groupName().isEmpty())
+                    {
+                        groupName = annotation.groupName();
+                        req = annotation.groupRequired();
+                    }
                     String desc = "";
                     if ((i18n != null) && (!annotation.description().isEmpty()))
                     {
@@ -201,42 +283,48 @@ public class SystemHelper
                     {
                         opt = SystemHelper.buildIntegerOption(optName, desc, annotation.required());
                     }
+                    else if (
+                            java.util.Collection.class.isAssignableFrom(c)
+                            )
+                    {
+                        opt = SystemHelper.buildListOption(optName, desc, annotation.required());
+                    }
                     else
                     {
                         opt = SystemHelper.buildStringOption(optName, desc, annotation.required());
                     }
                     if (opt != null)
                     {
-//                        if (groupName != null)
-//                        {
-//                            subcommands.get(groupName).add(opt);
-//                        }
-//                        else
-//                        {
-//                            if (subcommands.isEmpty())
-//                            {
+                        if (groupName != null)
+                        {
+                            subcommands.get(groupName).add(opt);
+                        }
+                        else
+                        {
+                            if (subcommands.isEmpty())
+                            {
                                 listParams.add(opt);
-//                            }
-//                            else
-//                            {
-//                                for (String key : subcommands.keySet())
-//                                {
-//                                    subcommands.get(key).add(opt);
-//                                }
-//                            }
-//                        }
+                            }
+                            else
+                            {
+                                for (String key : subcommands.keySet())
+                                {
+                                    subcommands.get(key).add(opt);
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-//        if (!subcommands.isEmpty())
-//        {
-//            listParams = new LinkedList<>();
-//            for (String key : subcommands.keySet())
-//            {
-//                listParams.add(SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, key, key, subcommands.get(key)));
-//            }
-//        }
+        if (!subcommands.isEmpty())
+        {
+            listParams = new LinkedList<>();
+            for (String key : subcommands.keySet())
+            {
+                listParams.add(SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, key, subcommanDesc.get(key), subcommands.get(key)));
+            }
+        }
         return listParams;
     }
     
@@ -244,6 +332,21 @@ public class SystemHelper
     {
         List<Field> fields = new ArrayList<>();
         Class workingClass = options.getClass();
+        boolean forceHelp = false;
+        boolean subcom = false;
+        if (options.getClass().isAnnotationPresent(RpgSystemData.class)) 
+        {
+            RpgSystemData data = options.getClass().getAnnotation(RpgSystemData.class);
+            subcom = (data.groupsName().length > 0);
+        }
+        if (subcom)
+        {
+            forceHelp = interaction.getOptions().get(0).getOptions() == null || interaction.getOptions().get(0).getOptions().isEmpty();
+        }
+        else
+        {
+            forceHelp = interaction.getOptions() == null || interaction.getOptions().isEmpty();
+        }
         while (true)
         {
             fields.addAll(Arrays.asList(workingClass.getDeclaredFields()));
@@ -279,7 +382,14 @@ public class SystemHelper
                             java.lang.Boolean.TYPE.isAssignableFrom(c)
                             )
                         {
-                            opt = SystemHelper.parseBooleanOption(interaction, optName);
+                            if (subcom)
+                            {
+                                opt = SystemHelper.parseBooleanSubOption(interaction, optName);
+                            }
+                            else
+                            {
+                                opt = SystemHelper.parseBooleanOption(interaction, optName);
+                            }
                         }
                         else if (
                                 java.lang.Number.class.isAssignableFrom(c) || 
@@ -290,11 +400,38 @@ public class SystemHelper
                                 java.lang.Double.TYPE.isAssignableFrom(c)
                                 )
                         {
-                            opt = SystemHelper.parseIntegerOption(interaction, optName);
+                            if (subcom)
+                            {
+                                opt = SystemHelper.parseIntegerSubOption(interaction, optName);
+                            }
+                            else
+                            {
+                                opt = SystemHelper.parseIntegerOption(interaction, optName);
+                            }
+                        }
+                        else if (
+                                java.util.Collection.class.isAssignableFrom(c)
+                                )
+                        {
+                            if (subcom)
+                            {
+                                opt = SystemHelper.parseListSubOption(interaction, optName);
+                            }
+                            else
+                            {
+                                opt = SystemHelper.parseListOption(interaction, optName);
+                            }
                         }
                         else
                         {
-                            opt = SystemHelper.parseStringOption(interaction, optName);
+                            if (subcom)
+                            {
+                                opt = SystemHelper.parseStringSubOption(interaction, optName);
+                            }
+                            else
+                            {
+                                opt = SystemHelper.parseStringOption(interaction, optName);
+                            }
                         }
                         if (opt != null)
                         {
@@ -309,6 +446,10 @@ public class SystemHelper
                     }
                 }
             }
+        }
+        if (forceHelp)
+        {
+            options.setHelp(true);
         }
     }
 }

@@ -15,7 +15,6 @@
  */
 package net.unknowndomain.alea.slash;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -23,7 +22,6 @@ import java.util.Optional;
 import java.util.UUID;
 import net.unknowndomain.alea.GenericListener;
 import net.unknowndomain.alea.bot.MsgFormatter;
-import net.unknowndomain.alea.command.Command;
 import net.unknowndomain.alea.command.PrintableOutput;
 import net.unknowndomain.alea.expr.Expression;
 import net.unknowndomain.alea.expr.ExpressionCommand;
@@ -43,8 +41,6 @@ import org.javacord.api.interaction.SlashCommandBuilder;
 import org.javacord.api.interaction.SlashCommandInteraction;
 import org.javacord.api.interaction.SlashCommandInteractionOption;
 import org.javacord.api.interaction.SlashCommandOption;
-import org.javacord.api.interaction.SlashCommandOptionChoice;
-import org.javacord.api.interaction.SlashCommandOptionType;
 import org.javacord.api.interaction.callback.InteractionImmediateResponseBuilder;
 import org.javacord.api.listener.interaction.SlashCommandCreateListener;
 import org.slf4j.Logger;
@@ -72,9 +68,15 @@ public class AleaCommands extends GenericListener implements SlashCommandCreateL
         commands.add(setupExprCommand());
         for (RpgSystemCommand cmd : RpgSystemCommand.LOADER)
         {
+            LOGGER.debug(cmd.getCommandDesc().getCommand());
             commands.add(setupSystemCommand(cmd));
         }
         api.bulkOverwriteGlobalSlashCommands(commands).join();
+//        List<SlashCommand> cose = api.getGlobalSlashCommands().join();
+//        for (SlashCommand sc : cose)
+//        {
+//            LOGGER.info(sc.getName());
+//        }
     }
     
     private static SlashCommandBuilder setupExprCommand()
