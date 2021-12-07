@@ -100,18 +100,17 @@
             <artifactId>alea-iacta-parser-picocli</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>alea-iacta-sys-7thsea2</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1-SNAPSHOT</version>
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>alea-iacta-sys-brassage</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1-SNAPSHOT</version>
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
@@ -145,21 +144,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>alea-iacta-sys-blacksad</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
             <artifactId>alea-iacta-sys-shintiara</artifactId>
-            <version>${project.version}</version>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>alea-iacta-sys-age</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
             <optional>true</optional>
@@ -192,16 +177,35 @@
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
-                -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>alea-iacta-sys-7thsea2</artifactId>
-            <version>1.0.1-SNAPSHOT</version>
+            <artifactId>alea-iacta-sys-2d20</artifactId>
+            <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>alea-iacta-sys-2d20</artifactId>
+            <artifactId>alea-iacta-sys-blacksad</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>alea-iacta-sys-age</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>alea-iacta-sys-stigmata</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>alea-iacta-sys-yearzero</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
