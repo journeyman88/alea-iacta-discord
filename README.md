@@ -27,6 +27,7 @@ At the moment of writing the systems supported are the following:
 
 | System  | Shortcut  | Command  |
 | :------------ | :------------ | :------------ |
+| 2d20 System  | `!alea 2d20`  | `!alea 2d20-system`  |
 | 7th Sea 2nd Edition  | `!alea 7s2`  | `!alea 7th-sea-2nd`  |
 | AGE System  | `!alea age`  | `!alea age-system`  |
 | Blacksad RPG  | `!alea sad`  | `!alea blacksad`  |
@@ -37,9 +38,11 @@ At the moment of writing the systems supported are the following:
 | Project H.O.P.E. 2nd Edition  | `!alea ph2`  | `!alea project-hope-2nd`  |
 | Shadowrun 5th Edition  | `!alea sr5`  | `!alea shadowrun-5th`  |
 | Shintiara RPG (Modern d100)  | `!alea shn`  | `!alea shintiara`  |
+| Stigmata: This Signal Kills Fascists  | `!alea stg`  | `!alea stigmata`  |
 | The Dark Eye 5th Edition  | `!alea da5`  | `!alea the-dark-eye-5th`  |
 | Vampire the Masquerade 5th Edition  | `!alea vt5`  | `!alea vampire-5th`  |
 | Walkthrough RPG  | `!alea wkt`  | `!alea walkthrough`  |
+| Year Zero Engine  | `!alea yze`  | `!alea year-zero-engine`  |
 
 For system-specific syntax and usage you can run the `!alea <system> -h` command or check in the github wiki for the system-specific page.
 

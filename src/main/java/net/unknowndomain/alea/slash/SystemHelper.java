@@ -33,7 +33,6 @@ import net.unknowndomain.alea.systems.annotations.RpgSystemOption;
 import org.javacord.api.interaction.SlashCommandInteraction;
 import org.javacord.api.interaction.SlashCommandInteractionOption;
 import org.javacord.api.interaction.SlashCommandOption;
-import org.javacord.api.interaction.SlashCommandOptionChoice;
 import org.javacord.api.interaction.SlashCommandOptionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,10 +58,11 @@ public class SystemHelper
     
     public static SlashCommandOption buildBooleanOption(String name, String desc, boolean required)
     {
-        return SlashCommandOption.createWithChoices(SlashCommandOptionType.INTEGER, name, desc, required,
-                                    Arrays.asList(
-                                        SlashCommandOptionChoice.create("FALSE", 0),
-                                        SlashCommandOptionChoice.create("TRUE", 1)));
+        return SlashCommandOption.create(SlashCommandOptionType.BOOLEAN, name, desc, required);
+//        return SlashCommandOption.createWithChoices(SlashCommandOptionType.INTEGER, name, desc, required,
+//                                    Arrays.asList(
+//                                        SlashCommandOptionChoice.create("FALSE", 0),
+//                                        SlashCommandOptionChoice.create("TRUE", 1)));
     }
     
     public static SlashCommandOption buildListOption(String name, String desc, boolean required)
@@ -73,13 +73,28 @@ public class SystemHelper
     public static boolean parseBooleanOption(SlashCommandInteraction interaction, String name)
     {
         boolean result = false;
+        LOGGER.info("Parse Boolean {}", name);
         Optional<SlashCommandInteractionOption> optBoolean = interaction.getOptionByName(name);
         if (optBoolean.isPresent())
         {
-            Optional<Integer> optBool = optBoolean.get().getIntValue();
+            LOGGER.info("Boolean {} is present", name);
+            Optional<Boolean> optBool = optBoolean.get().getBooleanValue();
+//            Optional<Integer> optBool = optBoolean.get().getIntValue();
             if (optBool.isPresent())
             {
-                result = optBool.get() > 0;
+                LOGGER.info("Boolean {} is boolean and present", name);
+                result = optBool.get();
+//                result = optBool.get() > 0;
+            }
+            else
+            {
+                LOGGER.info("Boolean {} is not boolean", name);
+                Optional<String> optBoolStr = optBoolean.get().getStringValue();
+                if (optBoolStr.isPresent())
+                {
+                    LOGGER.error("Boolean {} is string, value {}", name, optBoolStr.get());
+                    result = optBoolStr.get().equalsIgnoreCase("true");
+                }
             }
         }
         return result;
@@ -137,10 +152,20 @@ public class SystemHelper
         Optional<SlashCommandInteractionOption> optBoolean = interaction.getOptions().get(0).getOptionByName(name);
         if (optBoolean.isPresent())
         {
-            Optional<Integer> optBool = optBoolean.get().getIntValue();
+            Optional<Boolean> optBool = optBoolean.get().getBooleanValue();
+//            Optional<Integer> optBool = optBoolean.get().getIntValue();
             if (optBool.isPresent())
             {
-                result = optBool.get() > 0;
+                result = optBool.get();
+//                result = optBool.get() > 0;
+            }
+            else
+            {
+                Optional<String> optBoolStr = optBoolean.get().getStringValue();
+                if (optBoolStr.isPresent())
+                {
+                    result = optBoolStr.get().equalsIgnoreCase("true");
+                }
             }
         }
         return result;
