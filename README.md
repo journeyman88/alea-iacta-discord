@@ -3,7 +3,11 @@ The Discord bot - developed inside the alea-iacta-est project - to help running 
 
 It can be added to your server using this link:
 
-https://discord.com/oauth2/authorize?client_id=777835776757989427&scope=bot&permissions=0
+https://discord.com/api/oauth2/authorize?client_id=777835776757989427&scope=bot&permissions=0
+
+This bot also supports Slash Commands interaction, you can enable it using this link:
+
+https://discord.com/api/oauth2/authorize?client_id=777835776757989427&scope=applications.commands&permissions=0
 
 The bot supports system specific rolls and also has an expression solver to work on more generic rolls.
 The bot will listen to messages prefixed by `!alea`, and can also be configured to listen on the supported system-specific `!bang`: for example `!7s2` is a shortcut for `!alea 7s2` or `!alea 7th-sea-2nd`. In the official instance this behaviour is enabled by default. 
