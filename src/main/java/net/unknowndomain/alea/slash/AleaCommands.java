@@ -41,6 +41,7 @@ import org.javacord.api.interaction.SlashCommandBuilder;
 import org.javacord.api.interaction.SlashCommandInteraction;
 import org.javacord.api.interaction.SlashCommandInteractionOption;
 import org.javacord.api.interaction.SlashCommandOption;
+import org.javacord.api.interaction.SlashCommandUpdater;
 import org.javacord.api.interaction.callback.InteractionImmediateResponseBuilder;
 import org.javacord.api.listener.interaction.SlashCommandCreateListener;
 import org.slf4j.Logger;
@@ -55,6 +56,7 @@ public class AleaCommands extends GenericListener implements SlashCommandCreateL
     private static final Logger LOGGER = LoggerFactory.getLogger(AleaCommands.class);
     
     private final SettingsRepository settingsRepository;
+    private static String prefix = "test-";
     
     public AleaCommands(SettingsRepository settingsRepository, UUID namespace)
     {
@@ -62,8 +64,20 @@ public class AleaCommands extends GenericListener implements SlashCommandCreateL
         this.settingsRepository = settingsRepository;
     }
     
-    public static void setupCommands(DiscordApi api)
+    public static void deleteCommands(DiscordApi api)
     {
+        api.getGlobalSlashCommands().thenAccept(
+            globalCommands -> {
+                for (SlashCommand cmd : globalCommands){
+                    cmd.deleteGlobal();
+                }
+            }
+        );
+    }
+    
+    public static void setupCommands(DiscordApi api, String commandPrefix)
+    {
+        prefix = commandPrefix;
         List<SlashCommandBuilder> commands = new LinkedList<>();
         commands.add(setupExprCommand());
         for (RpgSystemCommand cmd : RpgSystemCommand.LOADER)
@@ -81,7 +95,7 @@ public class AleaCommands extends GenericListener implements SlashCommandCreateL
     
     private static SlashCommandBuilder setupExprCommand()
     {
-        SlashCommandBuilder exprCommand = new SlashCommandBuilder().setName("expr").setDescription("Solve the dice expression (example: 1d8+2d4-1d6+15-7)");
+        SlashCommandBuilder exprCommand = new SlashCommandBuilder().setName(prefix +"expr").setDescription("Solve the dice expression (example: 1d8+2d4-1d6+15-7)");
         exprCommand.addOption(SystemHelper.buildStringOption("expression", "The dice expression to solve", false));
         exprCommand.addOption(SystemHelper.buildBooleanOption("help", "Print the help", false));
         exprCommand.addOption(SystemHelper.buildBooleanOption("verbose", "Set the output as verbose", false));
@@ -90,8 +104,8 @@ public class AleaCommands extends GenericListener implements SlashCommandCreateL
     
     private static SlashCommandBuilder setupSystemCommand(RpgSystemCommand cmd)
     {
-        SlashCommandBuilder syscommand = SlashCommand.with(cmd.getCommandDesc().getCommand(), cmd.getCommandDesc().getSystem());
-        for (SlashCommandOption option : SystemHelper.exportOptions(cmd.buildOptions(), Locale.ENGLISH))
+        SlashCommandBuilder syscommand = SlashCommand.with(prefix + cmd.getCommandDesc().getCommand(), cmd.getCommandDesc().getSystem());
+        for (SlashCommandOption option : SystemHelper.exportOptions(cmd.getCommandDesc().getSystem(), cmd.buildOptions(), Locale.ENGLISH))
         {
             syscommand.addOption(option);
         }
@@ -103,6 +117,10 @@ public class AleaCommands extends GenericListener implements SlashCommandCreateL
     {
         SlashCommandInteraction interaction = event.getSlashCommandInteraction();
         String commandName = interaction.getCommandName();
+        if (commandName.startsWith(prefix))
+        {
+            commandName = commandName.replaceFirst(prefix, "");
+        }
         Long guildId = null;
         Locale locale = Locale.ENGLISH;
         Optional<UUID> callerId = buildCallerId(interaction.getUser());

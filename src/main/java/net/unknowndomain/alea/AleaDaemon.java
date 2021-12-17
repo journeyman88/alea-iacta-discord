@@ -28,6 +28,7 @@ import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
+import org.javacord.api.entity.server.Server;
 import org.javacord.api.interaction.SlashCommand;
 import org.javacord.api.util.logging.ExceptionLogger;
 import org.slf4j.Logger;
@@ -76,16 +77,26 @@ public class AleaDaemon implements Daemon
                 apiBuilder.addListener(new SystemListener(system, settingsRepository, aleaConfig.getNamespace()));
             }
         }
-        apiBuilder.addListener(new AleaCommands(settingsRepository, aleaConfig.getNamespace()));
+        if (aleaConfig.isEnableInteractions())
+        {
+            apiBuilder.addListener(new AleaCommands(settingsRepository, aleaConfig.getNamespace()));
+        }
         apiBuilder.setRecommendedTotalShards().join();
         apiBuilder.loginAllShards().forEach(
-                shardFuture -> shardFuture
-                        .thenAccept(api -> {
-                            LOGGER.info(api.createBotInvite());
-                            shards.add(api);
-                            AleaCommands.setupCommands(api);
-                        })
-                        .exceptionally(ExceptionLogger.get())
+            shardFuture -> shardFuture.thenAccept(
+                api -> {
+                    LOGGER.info(api.createBotInvite());
+                    shards.add(api);
+                    if (aleaConfig.isEnableInteractions())
+                    {
+                        AleaCommands.setupCommands(api, aleaConfig.getCommandPrefix());
+                    }
+                    else
+                    {
+                        AleaCommands.deleteCommands(api);
+                    }
+                }
+            ).exceptionally(ExceptionLogger.get())
         );
     }
 
