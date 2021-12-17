@@ -60,12 +60,26 @@ public class AleaConfigParser
                         .desc("Defines the directory in which is located the settings repository")
                         .build()
         );
+        CMD_OPTIONS.addOption(
+                Option.builder("i")
+                        .longOpt("enableInteractions")
+                        .desc("Enable SlashCommands interactions")
+                        .build()
+        );
+        CMD_OPTIONS.addOption(
+                Option.builder("p")
+                        .longOpt("commandPrefix")
+                        .hasArg()
+                        .argName("commandPrefix")
+                        .desc("Defines a prefix for the SlashCommands interactions")
+                        .build()
+        );
     }
     
     public static AleaConfig parseConfig(String ... args) throws ParseException
     {
         CommandLine cmd = PARSER.parse(CMD_OPTIONS, args);
-        AleaConfig retVal = new AleaConfig(cmd.getOptionValue("discordToken"), cmd.hasOption("systemListener"), cmd.getOptionValue("settingsRepository"));
+        AleaConfig retVal = new AleaConfig(cmd.getOptionValue("discordToken"), cmd.hasOption("systemListener"), cmd.getOptionValue("settingsRepository"), cmd.hasOption("enableInteractions"), cmd.getOptionValue("commandPrefix", ""));
         return retVal;
     }
     

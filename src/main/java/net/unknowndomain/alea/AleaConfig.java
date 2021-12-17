@@ -29,23 +29,29 @@ public class AleaConfig
     private final boolean systemListener;
     private final String settingsDir;
     private final UUID namespace;
+    private final boolean enableInteractions;
+    private final String commandPrefix;
     
-    public AleaConfig(String discordToken, boolean systemListener, String settingsDir)
+    public AleaConfig(String discordToken, boolean systemListener, String settingsDir, boolean enableInteractions, String commandPrefix)
     {
         this(
                 discordToken,
                 systemListener,
                 settingsDir,
+                enableInteractions, 
+                commandPrefix,
                 Generators.timeBasedGenerator(EthernetAddress.fromInterface()).generate()
         );
     }
     
-    public AleaConfig(String discordToken, boolean systemListener, String settingsDir, UUID namespace)
+    public AleaConfig(String discordToken, boolean systemListener, String settingsDir, boolean enableInteractions, String commandPrefix, UUID namespace)
     {
         this.discordToken = discordToken;
         this.systemListener = systemListener;
         this.settingsDir = settingsDir;
         this.namespace = namespace;
+        this.enableInteractions = enableInteractions;
+        this.commandPrefix = commandPrefix;
     }
 
     public String getDiscordToken()
@@ -66,5 +72,15 @@ public class AleaConfig
     public UUID getNamespace()
     {
         return namespace;
+    }
+
+    public String getCommandPrefix()
+    {
+        return commandPrefix;
+    }
+
+    public boolean isEnableInteractions()
+    {
+        return enableInteractions;
     }
 }

@@ -209,7 +209,7 @@ public class SystemHelper
         return result;
     }
     
-    public static List<SlashCommandOption> exportOptions(RpgSystemOptions options, Locale lang)
+    public static List<SlashCommandOption> exportOptions(String systemDesc, RpgSystemOptions options, Locale lang)
     {
         List<SlashCommandOption> listParams = new LinkedList<>();
         List<Field> fields = new ArrayList<>();
@@ -229,11 +229,11 @@ public class SystemHelper
                     subcommands.put(gn, new LinkedList<>());
                     if (groups.length == data.groupsDesc().length)
                     {
-                        subcommanDesc.put(gn, data.groupsDesc()[i]);
+                        subcommanDesc.put(gn, systemDesc + ": " + data.groupsDesc()[i]);
                     }
                     else
                     {
-                        subcommanDesc.put(gn, gn);
+                        subcommanDesc.put(gn, systemDesc + ": " + gn);
                     }
                 }
             }
