@@ -16,13 +16,18 @@
 package net.unknowndomain.alea.bot;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import net.unknowndomain.alea.icon.IconSolver;
 import net.unknowndomain.alea.messages.MsgFilePart;
+import net.unknowndomain.alea.messages.MsgIconPart;
 import net.unknowndomain.alea.messages.MsgTextPart;
 import net.unknowndomain.alea.messages.MsgPart;
 import net.unknowndomain.alea.messages.MsgStyle;
 import net.unknowndomain.alea.messages.MsgUrlPart;
 import net.unknowndomain.alea.messages.ReturnMsg;
+import net.unknowndomain.alea.utils.EmojiIconSolver;
+import org.javacord.api.entity.emoji.CustomEmoji;
 import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.MessageDecoration;
 import org.javacord.api.interaction.callback.InteractionMessageBuilderBase;
@@ -50,6 +55,23 @@ public class MsgFormatter
                 MsgTextPart part = (MsgTextPart) msgPart;
                 formatTextPart(msgBuilder, part);
             }
+            else if (msgPart instanceof MsgIconPart)
+            {
+                MsgIconPart part = (MsgIconPart) msgPart;
+                Optional<CustomEmoji> emoji = EmojiIconSolver.getInstance().solveIcon(part.getIcon());
+                if (emoji.isPresent())
+                {
+                    msgBuilder.append(emoji.get().getMentionTag());
+                }
+                else
+                {
+                    IconSolver.loadIcon(part.getIcon()).ifPresent(
+                            image -> {
+                                msgBuilder.addAttachment(image.getData(), image.getFileName());
+                            }
+                    );
+                }
+            }
             else if (msgPart instanceof MsgFilePart)
             {
                 MsgFilePart part = (MsgFilePart) msgPart;
@@ -71,6 +93,15 @@ public class MsgFormatter
             {
                 MsgTextPart part = (MsgTextPart) msgPart;
                 formatTextPart(msgBuilder, part);
+            }
+            else if (msgPart instanceof MsgIconPart)
+            {
+                MsgIconPart part = (MsgIconPart) msgPart;
+                Optional<CustomEmoji> emoji = EmojiIconSolver.getInstance().solveIcon(part.getIcon());
+                if (emoji.isPresent())
+                {
+                    msgBuilder.append(emoji.get().getMentionTag());
+                }
             }
 //            else if (msgPart instanceof MsgFilePart)
 //            {

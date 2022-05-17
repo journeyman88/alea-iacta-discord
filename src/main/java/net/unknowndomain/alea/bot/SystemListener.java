@@ -22,7 +22,6 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.unknowndomain.alea.command.Command;
-import net.unknowndomain.alea.messages.ReturnMsg;
 import net.unknowndomain.alea.parser.PicocliParser;
 import net.unknowndomain.alea.roll.GenericResult;
 import net.unknowndomain.alea.settings.GuildSettings;
@@ -66,6 +65,10 @@ public class SystemListener extends GenericListener implements MessageCreateList
                 if (guildSettings.isPresent())
                 {
                     locale = guildSettings.get().getLanguage();
+                    if (!guildSettings.get().getSystems().get(system.getCommandDesc().getCommand()).isEnabled())
+                    {
+                        return;
+                    }
                 }
             }
             MessageBuilder builder = new MessageBuilder();

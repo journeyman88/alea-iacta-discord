@@ -25,6 +25,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import net.unknowndomain.alea.systems.RpgSystemDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +75,47 @@ public class SettingsRepository
                 LOGGER.error(null, ex);
             }
         });
+    }
+    
+    public Set<Long> listGuilds()
+    {
+        return guildsRepo.keySet();
+    }
+    
+    public void initSystem(Long guildId, RpgSystemDescriptor system)
+    {
+        initSystem(guildId, system, true);
+    }
+    
+    public void initSystem(Long guildId, RpgSystemDescriptor system, boolean enabled)
+    {
+        GuildSettings gs = loadGuildSettings(guildId).get();
+        if (!gs.getSystems().keySet().contains(system.getCommand()))
+        {
+            SystemSettings ss = new SystemSettings();
+            ss.setEnabled(enabled);
+            gs.getSystems().put(system.getCommand(), ss);
+        }
+        storeGuildSettings(guildId, gs);
+    }
+    
+    public void setSystemCommand(Long guildId, String system, boolean enabled, Long commandId)
+    {
+        GuildSettings gs = loadGuildSettings(guildId).get();
+        if (gs.getSystems().keySet().contains(system))
+        {
+            SystemSettings ss = new SystemSettings();
+            ss.setEnabled(enabled);
+            ss.setCommandId(commandId);
+            gs.getSystems().put(system, ss);
+        }
+        storeGuildSettings(guildId, gs);
+    }
+    
+    public boolean isSystemEnabled(Long guildId, RpgSystemDescriptor system)
+    {
+        GuildSettings gs = loadGuildSettings(guildId).get();
+        return gs.getSystems().keySet().contains(system.getCommand()) && gs.getSystems().get(system.getCommand()).isEnabled();
     }
     
     public Optional<GuildSettings> loadGuildSettings(Long guildId)

@@ -15,39 +15,32 @@
  */
 package net.unknowndomain.alea.settings;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-
 /**
  *
  * @author journeyman
  */
-public class GuildSettings
+public class SystemSettings
 {
-    public static final String PREFIX = "guilds";
-    
-    private Locale language = Locale.ENGLISH;
-    private Map<String, SystemSettings> systems = new HashMap<>();
+    private boolean enabled = true;
+    private Long commandId;
 
-    public Locale getLanguage()
+    public boolean isEnabled()
     {
-        return language;
+        return enabled;
     }
 
-    public void setLanguage(Locale language)
+    public void setEnabled(boolean enabled)
     {
-        this.language = language;
+        this.enabled = enabled;
     }
 
-    public Map<String, SystemSettings> getSystems()
+    public Long getCommandId()
     {
-        return systems;
+        return commandId;
     }
 
-    public void setSystems(Map<String, SystemSettings> systems)
+    public void setCommandId(Long commandId)
     {
-        this.systems = systems;
+        this.commandId = commandId;
     }
-    
 }

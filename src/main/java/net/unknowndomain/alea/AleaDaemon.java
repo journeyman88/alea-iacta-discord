@@ -16,20 +16,22 @@
 package net.unknowndomain.alea;
 
 import net.unknowndomain.alea.bot.SystemListener;
-import net.unknowndomain.alea.bot.AleaListener;
+import net.unknowndomain.alea.bot.AleaMsgListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
-import net.unknowndomain.alea.slash.AleaCommands;
+import net.unknowndomain.alea.server.AleaJoinListener;
+import net.unknowndomain.alea.slash.AleaSlashCommands;
 import net.unknowndomain.alea.settings.SettingsRepository;
+import net.unknowndomain.alea.slash.CommandsHelper;
 import net.unknowndomain.alea.systems.RpgSystemCommand;
+import net.unknowndomain.alea.utils.EmojiIconSolver;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.DiscordApiBuilder;
-import org.javacord.api.entity.server.Server;
-import org.javacord.api.interaction.SlashCommand;
 import org.javacord.api.util.logging.ExceptionLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +55,7 @@ public class AleaDaemon implements Daemon
     public AleaDaemon(AleaConfig aleaConfig)
     {
         this.aleaConfig = aleaConfig;
-        this.shards = Collections.synchronizedList(new ArrayList<>());
+        this.shards = Collections.synchronizedList(new LinkedList<>());
     }
     
     @Override
@@ -69,7 +71,14 @@ public class AleaDaemon implements Daemon
         SettingsRepository settingsRepository = new SettingsRepository(aleaConfig.getSettingsDir());
         DiscordApiBuilder apiBuilder = new DiscordApiBuilder();
         apiBuilder.setToken(aleaConfig.getDiscordToken());
-        apiBuilder.addListener(new AleaListener(settingsRepository, aleaConfig.getNamespace()));
+        apiBuilder.addListener(new AleaMsgListener(settingsRepository, aleaConfig.getNamespace()));
+        for (Long guildId : settingsRepository.listGuilds())
+        {
+            for (RpgSystemCommand system : RpgSystemCommand.LOADER)
+            {
+                settingsRepository.initSystem(guildId, system.getCommandDesc());
+            }
+        }
         if (aleaConfig.isSystemListener())
         {
             for (RpgSystemCommand system : RpgSystemCommand.LOADER)
@@ -79,22 +88,30 @@ public class AleaDaemon implements Daemon
         }
         if (aleaConfig.isEnableInteractions())
         {
-            apiBuilder.addListener(new AleaCommands(settingsRepository, aleaConfig.getNamespace()));
+            apiBuilder.addListener(new AleaSlashCommands(settingsRepository, aleaConfig.getCommandPrefix(), aleaConfig.getNamespace()));
         }
+        apiBuilder.addServerJoinListener(new AleaJoinListener(settingsRepository, aleaConfig.getNamespace()));
         apiBuilder.setRecommendedTotalShards().join();
-        apiBuilder.loginAllShards().forEach(
-            shardFuture -> shardFuture.thenAccept(
+        apiBuilder.loginAllShards().forEach(shardFuture -> shardFuture.thenAccept(
                 api -> {
                     LOGGER.info(api.createBotInvite());
-                    shards.add(api);
-                    if (aleaConfig.isEnableInteractions())
+                    if (shards.isEmpty())
                     {
-                        AleaCommands.setupCommands(api, aleaConfig.getCommandPrefix());
+                        shards.add(api);
+                        if (aleaConfig.isEnableInteractions())
+                        {
+                            CommandsHelper.setupCommands(api, aleaConfig.getCommandPrefix(), settingsRepository);
+                        }
+                        else
+                        {
+                            CommandsHelper.deleteCommands(api);
+                        }
                     }
                     else
                     {
-                        AleaCommands.deleteCommands(api);
+                        shards.add(api);
                     }
+                    EmojiIconSolver.build(api);
                 }
             ).exceptionally(ExceptionLogger.get())
         );

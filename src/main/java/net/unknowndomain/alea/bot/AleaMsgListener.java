@@ -17,6 +17,7 @@ package net.unknowndomain.alea.bot;
 
 import net.unknowndomain.alea.GenericListener;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -27,6 +28,7 @@ import net.unknowndomain.alea.command.BasicCommand;
 import net.unknowndomain.alea.command.Command;
 import net.unknowndomain.alea.command.PrintableOutput;
 import net.unknowndomain.alea.expr.ExpressionCommand;
+import net.unknowndomain.alea.icon.AleaIcon;
 import net.unknowndomain.alea.messages.MsgBuilder;
 import net.unknowndomain.alea.messages.ReturnMsg;
 import net.unknowndomain.alea.parser.PicocliParser;
@@ -37,12 +39,12 @@ import net.unknowndomain.alea.settings.SettingsRepository;
 import net.unknowndomain.alea.systems.ListSystemsCommand;
 import net.unknowndomain.alea.systems.RpgSystemCommand;
 import net.unknowndomain.alea.systems.RpgSystemOptions;
+import net.unknowndomain.alea.utils.EmojiIconSolver;
 import org.apache.commons.lang3.StringUtils;
 import org.javacord.api.entity.channel.TextChannel;
 import org.javacord.api.entity.message.MessageAuthor;
 import org.javacord.api.entity.message.MessageBuilder;
 import org.javacord.api.entity.message.MessageDecoration;
-import org.javacord.api.entity.user.User;
 import org.javacord.api.event.message.MessageCreateEvent;
 import org.javacord.api.listener.message.MessageCreateListener;
 import org.slf4j.Logger;
@@ -52,13 +54,13 @@ import org.slf4j.LoggerFactory;
  *
  * @author journeyman
  */
-public class AleaListener extends GenericListener implements MessageCreateListener
+public class AleaMsgListener extends GenericListener implements MessageCreateListener
 {
     public static final String PREFIX = "!alea";
     private static final Pattern PATTERN = Pattern.compile("^(" + PREFIX + ")(( +)(?<parameters>.*))?$");
     
-    private static final List<BasicCommand> AVAILABLE_COMMANDS = new ArrayList<>();
-    private static final Logger LOGGER = LoggerFactory.getLogger(AleaListener.class);
+    private static final List<BasicCommand> AVAILABLE_COMMANDS = new LinkedList<>();
+    private static final Logger LOGGER = LoggerFactory.getLogger(AleaMsgListener.class);
     
     private final SettingsRepository settingsRepository;
     private final List<Command> SETTINGS_COMMANDS = new ArrayList<>();
@@ -68,7 +70,7 @@ public class AleaListener extends GenericListener implements MessageCreateListen
         AVAILABLE_COMMANDS.add(new ExpressionCommand());
     }
     
-    public AleaListener(SettingsRepository settingsRepository, UUID namespace)
+    public AleaMsgListener(SettingsRepository settingsRepository, UUID namespace)
     {
         super(namespace);
         this.settingsRepository = settingsRepository;
@@ -119,7 +121,7 @@ public class AleaListener extends GenericListener implements MessageCreateListen
                     if ((cmd instanceof GuildConfigCommand) && (guildId != null) && (guildAdmin))
                     {
                         GuildConfigCommand gcc = (GuildConfigCommand) cmd;
-                        msg = gcc.execCommand(params, guildId);
+                        msg = gcc.execCommand(params, event.getApi(), guildId);
                     }
                     else
                     {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 m.bignami.
+ * Copyright 2021 Marco Bignami.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,31 +19,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.UUID;
-import net.unknowndomain.alea.GenericListener;
-import net.unknowndomain.alea.bot.MsgFormatter;
-import net.unknowndomain.alea.command.PrintableOutput;
-import net.unknowndomain.alea.expr.Expression;
-import net.unknowndomain.alea.expr.ExpressionCommand;
-import net.unknowndomain.alea.expr.ExpressionResult;
-import net.unknowndomain.alea.messages.MsgBuilder;
-import net.unknowndomain.alea.messages.ReturnMsg;
-import net.unknowndomain.alea.parser.PicocliParser;
-import net.unknowndomain.alea.roll.GenericResult;
-import net.unknowndomain.alea.settings.GuildSettings;
 import net.unknowndomain.alea.settings.SettingsRepository;
 import net.unknowndomain.alea.systems.RpgSystemCommand;
-import net.unknowndomain.alea.systems.RpgSystemOptions;
 import org.javacord.api.DiscordApi;
-import org.javacord.api.event.interaction.SlashCommandCreateEvent;
+import org.javacord.api.entity.server.Server;
 import org.javacord.api.interaction.SlashCommand;
 import org.javacord.api.interaction.SlashCommandBuilder;
-import org.javacord.api.interaction.SlashCommandInteraction;
-import org.javacord.api.interaction.SlashCommandInteractionOption;
 import org.javacord.api.interaction.SlashCommandOption;
-import org.javacord.api.interaction.SlashCommandUpdater;
-import org.javacord.api.interaction.callback.InteractionImmediateResponseBuilder;
-import org.javacord.api.listener.interaction.SlashCommandCreateListener;
+import org.javacord.api.interaction.SlashCommandOptionBuilder;
+import org.javacord.api.interaction.SlashCommandOptionChoice;
+import org.javacord.api.interaction.SlashCommandOptionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,17 +36,23 @@ import org.slf4j.LoggerFactory;
  *
  * @author m.bignami
  */
-public class AleaCommands extends GenericListener implements SlashCommandCreateListener
+public class CommandsHelper
 {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AleaCommands.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandsHelper.class);
     
-    private final SettingsRepository settingsRepository;
     private static String prefix = "test-";
     
-    public AleaCommands(SettingsRepository settingsRepository, UUID namespace)
+    public static void deleteCommands(DiscordApi api, Long guildId, Long commandId)
     {
-        super(namespace);
-        this.settingsRepository = settingsRepository;
+        Optional<Server> server = api.getServerById(guildId);
+        if (server.isPresent())
+        {
+            api.getServerSlashCommandById(server.get(), commandId).thenAccept(
+                serverCommand -> {
+                    serverCommand.deleteForServer(server.get());
+                }
+            );
+        }
     }
     
     public static void deleteCommands(DiscordApi api)
@@ -69,28 +60,83 @@ public class AleaCommands extends GenericListener implements SlashCommandCreateL
         api.getGlobalSlashCommands().thenAccept(
             globalCommands -> {
                 for (SlashCommand cmd : globalCommands){
+                    cmd.createSlashCommandUpdater();
                     cmd.deleteGlobal();
                 }
             }
         );
     }
     
-    public static void setupCommands(DiscordApi api, String commandPrefix)
+    public static void setupCommands(DiscordApi api, String commandPrefix, SettingsRepository settings)
     {
         prefix = commandPrefix;
         List<SlashCommandBuilder> commands = new LinkedList<>();
         commands.add(setupExprCommand());
+        commands.add(setupGuildSettingCommand());
         for (RpgSystemCommand cmd : RpgSystemCommand.LOADER)
         {
             LOGGER.debug(cmd.getCommandDesc().getCommand());
             commands.add(setupSystemCommand(cmd));
         }
         api.bulkOverwriteGlobalSlashCommands(commands).join();
+        for (Long guildId : settings.listGuilds())
+        {
+            updateGuild(api, settings, guildId);
+        }
 //        List<SlashCommand> cose = api.getGlobalSlashCommands().join();
 //        for (SlashCommand sc : cose)
 //        {
 //            LOGGER.info(sc.getName());
 //        }
+    }
+    
+    public static void updateGuild(DiscordApi api, SettingsRepository settings, Long guildId)
+    {
+        
+//        Optional<Server> guild = api.getServerById(guildId);
+//        if (guild.isPresent())
+//        {
+//            List<SlashCommandBuilder> commands = new LinkedList<>();
+//            for (RpgSystemCommand cmd : RpgSystemCommand.LOADER)
+//            {
+//                LOGGER.debug(cmd.getCommandDesc().getCommand());
+//                if (settings.isSystemEnabled(guildId, cmd.getCommandDesc()))
+//                {
+//                    commands.add(setupSystemCommand(cmd));
+//                }
+//            }
+//            api.bulkOverwriteServerSlashCommands(guild.get(), commands).thenAccept(slashCommands -> {
+//                for (SlashCommand sc : slashCommands)
+//                {
+//                    String sys = sc.getName().replaceAll(prefix, "");
+//                    settings.setSystemCommand(guildId, sys, true, sc.getId());
+//                }
+//            });
+//        }
+    }
+    
+    public static void updateSystemCommand(SettingsRepository settings, DiscordApi api, Long guildId, String systemId)
+    {
+        Optional<SlashCommandBuilder> scb = setupSystemCommand(systemId);
+        Optional<Server> server = api.getServerById(guildId);
+        if (scb.isPresent() && server.isPresent())
+        {
+            scb.get().createForServer(server.get()).thenAccept(slashCommand -> {
+                settings.setSystemCommand(guildId, systemId, true, slashCommand.getId());
+            });
+        }
+    }
+    
+    public static Optional<SlashCommandBuilder> setupSystemCommand(String systemId)
+    {
+        for (RpgSystemCommand cmd : RpgSystemCommand.LOADER)
+        {
+            if (systemId.equals(cmd.getCommandDesc().getCommand()))
+            {
+                return Optional.ofNullable(setupSystemCommand(cmd));
+            }
+        }
+        return Optional.empty();
     }
     
     private static SlashCommandBuilder setupExprCommand()
@@ -102,6 +148,40 @@ public class AleaCommands extends GenericListener implements SlashCommandCreateL
         return exprCommand;
     }
     
+    private static SlashCommandBuilder setupGuildSettingCommand()
+    {
+        List<SlashCommandOptionChoice> systems = new LinkedList<>();
+        for (RpgSystemCommand cmd : RpgSystemCommand.LOADER)
+        {
+            systems.add(SlashCommandOptionChoice.create(cmd.getCommandDesc().getCommand(), cmd.getCommandDesc().getCommand()));
+        }
+        SlashCommandBuilder exprCommand = new SlashCommandBuilder().setName(prefix +"guild-config").setDescription("Edit the guild settings");
+        exprCommand.addOption(SlashCommandOption.create(SlashCommandOptionType.SUB_COMMAND, "get-lang", "Gets the guild language used by the RPG systems"));
+        exprCommand.addOption(SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "set-lang", "Sets the guild language used by RPG systems", 
+                new SlashCommandOptionBuilder()
+                        .setType(SlashCommandOptionType.STRING)
+                        .setName("language")
+                        .setDescription("The language to use if available")
+                        .setRequired(true)));
+//        exprCommand.addOption(SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "enable-system", "Enable RPG systems", 
+//                new SlashCommandOptionBuilder()
+//                        .setType(SlashCommandOptionType.STRING)
+//                        .setDescription("The RPG system to enable")
+//                        .setName("systemId")
+//                        .setChoices(systems)
+//                        .setRequired(true)));
+//        exprCommand.addOption(SlashCommandOption.createWithOptions(SlashCommandOptionType.SUB_COMMAND, "disable-system", "Disable RPG systems", 
+//                new SlashCommandOptionBuilder()
+//                        .setType(SlashCommandOptionType.STRING)
+//                        .setDescription("The RPG system to disable")
+//                        .setName("systemId")
+//                        .setChoices(systems)
+//                        .setRequired(true)));
+        exprCommand.addOption(SlashCommandOption.create(SlashCommandOptionType.SUB_COMMAND, "clear", "Remove all of the guild's stored data"));
+//        exprCommand.setDefaultPermission(Boolean.FALSE);
+        return exprCommand;
+    }
+    
     private static SlashCommandBuilder setupSystemCommand(RpgSystemCommand cmd)
     {
         SlashCommandBuilder syscommand = SlashCommand.with(prefix + cmd.getCommandDesc().getCommand(), cmd.getCommandDesc().getSystem());
@@ -110,77 +190,5 @@ public class AleaCommands extends GenericListener implements SlashCommandCreateL
             syscommand.addOption(option);
         }
         return syscommand;
-    }
-
-    @Override
-    public void onSlashCommandCreate(SlashCommandCreateEvent event)
-    {
-        SlashCommandInteraction interaction = event.getSlashCommandInteraction();
-        String commandName = interaction.getCommandName();
-        if (commandName.startsWith(prefix))
-        {
-            commandName = commandName.replaceFirst(prefix, "");
-        }
-        Long guildId = null;
-        Locale locale = Locale.ENGLISH;
-        Optional<UUID> callerId = buildCallerId(interaction.getUser());
-        if (interaction.getServer().isPresent())
-            {
-                guildId = interaction.getServer().get().getId();
-                Optional<GuildSettings> guildSettings = settingsRepository.loadGuildSettings(guildId);
-                if (guildSettings.isPresent())
-                {
-                    LOGGER.debug("GuildSettings found");
-                    locale = guildSettings.get().getLanguage();
-                }
-            }
-        ReturnMsg result = new MsgBuilder().build();
-        if ("expr".equalsIgnoreCase(commandName))
-        {
-            Optional<SlashCommandInteractionOption> optExpr = interaction.getOptionByName("expression");
-            result = (new ExpressionCommand()).printHelp(locale);
-            boolean help = SystemHelper.parseBooleanOption(interaction, "help");
-            boolean verbose = SystemHelper.parseBooleanOption(interaction, "verbose");
-            if (optExpr.isPresent() && !help)
-            {
-                String expression = optExpr.get().getStringValue().get();
-                Expression expressionEngine = new Expression(expression);
-                ExpressionResult exprRes = expressionEngine.getResult();
-                exprRes.setVerbose(verbose);
-                Optional<PrintableOutput> out = Optional.of(exprRes);
-                if (out.isPresent())
-                {
-                    result = out.get().buildMessage();
-                }
-            }
-        }
-        else
-        {
-            Optional<RpgSystemCommand> foundCmd = Optional.empty();
-            for (RpgSystemCommand cmd : RpgSystemCommand.LOADER)
-            {
-                if (cmd.getCommandDesc().getCommand().equals(commandName))
-                {
-                    foundCmd = Optional.of(cmd);
-                }
-            }
-            if (foundCmd.isPresent())
-            {
-                RpgSystemOptions options = foundCmd.get().buildOptions();
-                SystemHelper.parseOptions(options, interaction);
-                Optional<GenericResult> res = foundCmd.get().execCommand(options, locale, callerId);
-                if (res.isPresent())
-                {
-                    result = res.get().buildMessage();
-                }
-                else
-                {
-                    result = PicocliParser.printHelp(interaction.getCommandName(), options, locale);
-                }
-            }
-        }
-        InteractionImmediateResponseBuilder responder = interaction.createImmediateResponder();
-        MsgFormatter.appendMessage(responder, result);
-        responder.respond();
     }
 }
