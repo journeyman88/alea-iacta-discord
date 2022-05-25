@@ -16,7 +16,12 @@
 package net.unknowndomain.alea.utils;
 
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import net.unknowndomain.alea.icon.AleaIcon;
+import net.unknowndomain.alea.roll.GenericResult;
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.emoji.CustomEmoji;
 
@@ -28,6 +33,10 @@ public class EmojiIconSolver
 {
     
     private static EmojiIconSolver INSTANCE = null;
+    
+    private static final Cache<String, CustomEmoji> ICON_CACHE = new Cache2kBuilder<String, CustomEmoji>() {}
+            .expireAfterWrite(30, TimeUnit.MINUTES)
+            .build();
     
     private final DiscordApi api;
     
@@ -51,8 +60,18 @@ public class EmojiIconSolver
     
     public Optional<CustomEmoji> solveIcon(AleaIcon icon)
     {
+        String iconKey = icon.getNamespace() + "_" + icon.getIconId();
+        if (ICON_CACHE.containsKey(iconKey))
+        {
+            return Optional.ofNullable(ICON_CACHE.get(iconKey));
+        }
+        return solveIconImpl(iconKey);
+    }
+    
+    private Optional<CustomEmoji> solveIconImpl(String iconKey)
+    {
         Optional<CustomEmoji> retVal = Optional.empty();
-        for (CustomEmoji emoji : api.getCustomEmojisByName(icon.getNamespace() + "_" + icon.getIconId()))
+        for (CustomEmoji emoji : api.getCustomEmojisByName(iconKey))
         {
             retVal = Optional.ofNullable(emoji);
         }
