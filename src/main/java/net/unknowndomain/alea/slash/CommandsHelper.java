@@ -78,7 +78,7 @@ public class CommandsHelper
             LOGGER.debug(cmd.getCommandDesc().getCommand());
             commands.add(setupSystemCommand(cmd));
         }
-        api.bulkOverwriteGlobalSlashCommands(commands).join();
+        api.bulkOverwriteGlobalApplicationCommands(commands).join();
         for (Long guildId : settings.listGuilds())
         {
             updateGuild(api, settings, guildId);

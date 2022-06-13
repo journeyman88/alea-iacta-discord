@@ -54,7 +54,7 @@ public class SystemHelper
     
     public static SlashCommandOption buildIntegerOption(String name, String desc, boolean required)
     {
-        return SlashCommandOption.create(SlashCommandOptionType.INTEGER, name, desc, required);
+        return SlashCommandOption.create(SlashCommandOptionType.LONG, name, desc, required);
     }
     
     public static SlashCommandOption buildBooleanOption(String name, String desc, boolean required)
@@ -100,10 +100,10 @@ public class SystemHelper
         Optional<SlashCommandInteractionOption> optBoolean = interaction.getOptionByName(name);
         if (optBoolean.isPresent())
         {
-            Optional<Integer> optBool = optBoolean.get().getIntValue();
-            if (optBool.isPresent())
+            Optional<Long> optLong = optBoolean.get().getLongValue();
+            if (optLong.isPresent())
             {
-                result = optBool.get();
+                result = optLong.get().intValue();
             }
         }
         return result;
@@ -169,10 +169,10 @@ public class SystemHelper
         Optional<SlashCommandInteractionOption> optBoolean = interaction.getOptions().get(0).getOptionByName(name);
         if (optBoolean.isPresent())
         {
-            Optional<Integer> optBool = optBoolean.get().getIntValue();
+            Optional<Long> optBool = optBoolean.get().getLongValue();
             if (optBool.isPresent())
             {
-                result = optBool.get();
+                result = optBool.get().intValue();
             }
         }
         return result;
