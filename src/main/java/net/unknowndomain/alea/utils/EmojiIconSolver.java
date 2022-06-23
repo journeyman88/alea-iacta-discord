@@ -18,10 +18,15 @@ package net.unknowndomain.alea.utils;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import javax.cache.Cache;
+import javax.cache.CacheManager;
+import javax.cache.Caching;
+import javax.cache.configuration.FactoryBuilder;
+import javax.cache.configuration.MutableConfiguration;
+import javax.cache.expiry.Duration;
+import javax.cache.expiry.ModifiedExpiryPolicy;
+import javax.cache.spi.CachingProvider;
 import net.unknowndomain.alea.icon.AleaIcon;
-import net.unknowndomain.alea.roll.GenericResult;
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
 import org.javacord.api.DiscordApi;
 import org.javacord.api.entity.emoji.CustomEmoji;
 
@@ -34,14 +39,18 @@ public class EmojiIconSolver
     
     private static EmojiIconSolver INSTANCE = null;
     
-    private static final Cache<String, CustomEmoji> ICON_CACHE = new Cache2kBuilder<String, CustomEmoji>() {}
-            .expireAfterWrite(30, TimeUnit.MINUTES)
-            .build();
+    private final Cache<String, CustomEmoji> iconCache;
     
     private final DiscordApi api;
     
     private EmojiIconSolver(DiscordApi api)
     {
+    
+        CachingProvider cachingProvider = Caching.getCachingProvider();
+        CacheManager cacheManager = cachingProvider.getCacheManager();
+        MutableConfiguration<String, CustomEmoji> config = new MutableConfiguration<>();
+        config.setExpiryPolicyFactory(FactoryBuilder.factoryOf(new ModifiedExpiryPolicy(new Duration( TimeUnit.MINUTES, 30 ))));
+        this.iconCache = cacheManager.createCache("EmojiIcon_" + UUID.randomUUID(), config);
         this.api = api;
     }
     
@@ -61,9 +70,9 @@ public class EmojiIconSolver
     public Optional<CustomEmoji> solveIcon(AleaIcon icon)
     {
         String iconKey = icon.getNamespace() + "_" + icon.getIconId();
-        if (ICON_CACHE.containsKey(iconKey))
+        if (iconCache.containsKey(iconKey))
         {
-            return Optional.ofNullable(ICON_CACHE.get(iconKey));
+            return Optional.ofNullable(iconCache.get(iconKey));
         }
         return solveIconImpl(iconKey);
     }

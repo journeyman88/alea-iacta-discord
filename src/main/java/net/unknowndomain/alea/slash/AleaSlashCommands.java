@@ -84,13 +84,13 @@ public class AleaSlashCommands extends GenericListener implements SlashCommandCr
         ReturnMsg result = new MsgBuilder().build();
         if ("guild-config".equalsIgnoreCase(commandName))
         {
-            Optional<SlashCommandInteractionOption> opt = interaction.getFirstOption();
+            Optional<SlashCommandInteractionOption> opt = interaction.getOptionByIndex(0);
             String cmdLine = "--help";
             if (opt.isPresent())
             {
                 SlashCommandInteractionOption sub = opt.get();
                 cmdLine = "--" + sub.getName();
-                Optional<SlashCommandInteractionOption> optPar = sub.getFirstOption();
+                Optional<SlashCommandInteractionOption> optPar = sub.getOptionByIndex(0);
                 if (optPar.isPresent())
                 {
                     cmdLine += "=" + optPar.get().getStringValue().get();
