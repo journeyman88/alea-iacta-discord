@@ -36,6 +36,9 @@ At the moment of writing the systems supported are the following:
 | AGE System  | `!alea age`  | `!alea age-system`  |
 | Blacksad RPG  | `!alea sad`  | `!alea blacksad`  |
 | Brass Age  | `!alea ba1`  | `!alea brass-age`  |
+| Favored by Fortune  | `!alea fbf`  | `!alea favored-by-fortune`  |
+| Forged in the Dark  | `!alea fitd`  | `!alea forged-in-the-dark`  |
+| Genesys System  | `!alea gen`  | `!alea genesys`  |
 | Klothos (Thread System)  | `!alea kts`  | `!alea klothos`  |
 | Lex Arcana 2nd Edition  | `!alea lex`  | `!alea lex-arcana-2nd`  |
 | Not The End  | `!alea nte`  | `!alea not-the-end`  |
